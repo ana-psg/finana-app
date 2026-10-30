@@ -1,0 +1,45 @@
+{# Peças reaproveitadas entre telas. Uso: {% from "_macros.html" import abas_despesas, form_pagamento %} #}
+
+{# Abas da área "Despesas": Fixas | A pagar #}
+{% macro abas_despesas(ativa) %}
+<div class="flex gap-2 mb-6">
+    {% for area, label in [('despesas_fixas', 'Fixas'), ('a_pagar', 'A pagar (pessoas)')] %}
+    <a href="{{ url_for(area ~ '.index') }}"
+       class="px-5 py-2 rounded-xl text-sm font-semibold
+              {% if ativa == area %}active-menu{% else %}bg-[#18181f] border border-[#23232d] text-gray-400 hover:text-white{% endif %}">
+        {{ label }}
+    </a>
+    {% endfor %}
+</div>
+{% endmacro %}
+
+{# Formulário "Data / Via: Conta ou Cartão / Pagar". uid deixa os ids únicos quando há vários na tela. #}
+{% macro form_pagamento(action, uid, contas, cartoes, data_hoje, botao='Dar Baixa', campos_ocultos={}) %}
+<form action="{{ action }}" method="POST" class="flex items-center gap-2 bg-[#141419] p-2.5 rounded-xl border border-[#23232d] flex-wrap">
+    {% for nome, valor in campos_ocultos.items() %}
+    <input type="hidden" name="{{ nome }}" value="{{ valor }}">
+    {% endfor %}
+
+    <span class="text-xs text-gray-400 font-medium">Data:</span>
+    <input type="date" name="paid_date" value="{{ data_hoje }}" required class="text-xs px-2 py-1.5 rounded-lg bg-[#0f0f13] border border-[#23232d] text-white">
+
+    <span class="text-xs text-gray-400 font-medium ml-2">Via:</span>
+    <select name="pagamento_tipo" required class="text-xs px-3 py-1.5 rounded-lg" onchange="atualizarDestino(this, '{{ uid }}')">
+        <option value="" disabled selected>Forma...</option>
+        <option value="conta">Conta</option>
+        <option value="cartao">Cartão</option>
+    </select>
+
+    <select id="contas-{{ uid }}" name="conta_id" class="text-xs px-3 py-1.5 rounded-lg flex-1" hidden>
+        <option value="" disabled selected>Qual Conta?</option>
+        {% for acc in contas %}<option value="{{ acc.id }}">{{ acc.name }}</option>{% endfor %}
+    </select>
+
+    <select id="cartoes-{{ uid }}" name="cartao_id" class="text-xs px-3 py-1.5 rounded-lg flex-1" hidden>
+        <option value="" disabled selected>Qual Cartão?</option>
+        {% for cart in cartoes %}<option value="{{ cart.id }}">{{ cart.name }}</option>{% endfor %}
+    </select>
+
+    <button type="submit" class="px-4 py-1.5 rounded-lg bg-pink-600 hover:bg-pink-500 text-white text-xs font-bold transition-colors">{{ botao }}</button>
+</form>
+{% endmacro %}
