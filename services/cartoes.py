@@ -35,7 +35,7 @@ def registrar_compra(conn, cartao_id, descricao, valor_total, data_compra, categ
     data_compra é um datetime; valor negativo é permitido (crédito/estorno)."""
     if valor_total == 0:
         raise ErroNegocio('Informe o valor da compra.')
-    cartao = conn.execute('SELECT closing_day, due_day FROM cards WHERE id = ?', (cartao_id,)).fetchone()
+    cartao = conn.execute('SELECT closing_day, due_day FROM cards WHERE id = ? AND is_active = 1', (cartao_id,)).fetchone()
     if not cartao:
         raise ErroNegocio('Escolha um cartão válido.')
     parcelas = max(int(parcelas), 1)
@@ -109,7 +109,7 @@ def pagar_fatura(conn, cartao_id, conta_id, mes):
     cartao = conn.execute('SELECT name FROM cards WHERE id = ?', (cartao_id,)).fetchone()
     if not cartao:
         raise ErroNegocio('Escolha um cartão válido.')
-    if not conn.execute('SELECT 1 FROM accounts WHERE id = ?', (conta_id,)).fetchone():
+    if not conn.execute('SELECT 1 FROM accounts WHERE id = ? AND is_active = 1', (conta_id,)).fetchone():
         raise ErroNegocio('Escolha uma conta válida.')
     valor = _total(conn, cartao_id, mes, so_pendente=True)
     if valor <= 0:

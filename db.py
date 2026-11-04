@@ -56,6 +56,8 @@ def init_db():
 
 
 def _colunas(conn, tabela):
+    if not tabela.isidentifier():
+        raise ValueError(f'nome de tabela inválido: {tabela!r}')
     return [r[1] for r in conn.execute(f"PRAGMA table_info({tabela})")]
 
 

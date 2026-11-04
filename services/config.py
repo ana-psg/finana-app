@@ -38,6 +38,11 @@ def definir_pin(conn, pin, confirmacao):
     if pin != (confirmacao or '').strip():
         raise ErroNegocio('A confirmação não bate com o PIN.')
     definir(conn, 'pin_hash', generate_password_hash(pin))
+    definir(conn, 'pin_versao', secrets.token_hex(8))  # trocar o PIN desconecta os aparelhos que já tinham entrado
+
+
+def versao_pin(conn):
+    return obter(conn, 'pin_versao', '')
 
 
 def pin_correto(conn, pin):

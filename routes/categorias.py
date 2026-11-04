@@ -13,7 +13,7 @@ def index():
             nome = texto_obrigatorio(request.form.get('name'), 'o nome da categoria', 60)
             with conectar() as conn:
                 conn.execute('INSERT INTO categories (name, type) VALUES (?, ?)',
-                             (nome, request.form.get('type') or 'despesa'))
+                             (nome, 'receita' if request.form.get('type') == 'receita' else 'despesa'))
         except ErroNegocio as e:
             flash(str(e), 'erro')
         return redirect(url_for('categorias.index'))

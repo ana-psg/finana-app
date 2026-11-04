@@ -48,8 +48,13 @@ def bloquear_outros_sites():
 
 @bp.before_app_request
 def exigir_pin():
-    if request.endpoint in LIVRES or is_local_request() or session.get('autorizado'):
+    if request.endpoint in LIVRES or is_local_request():
         return None
+    if session.get('autorizado'):
+        with conectar() as conn:
+            if session.get('pin_versao') == config.versao_pin(conn):
+                return None
+        session.clear()  # o PIN mudou depois que este aparelho entrou
     return redirect(url_for('acesso.entrar', proximo=request.path))
 
 
@@ -67,11 +72,13 @@ def entrar():
         else:
             with conectar() as conn:
                 ok = config.pin_correto(conn, request.form.get('pin'))
+                versao = config.versao_pin(conn)
             if ok:
                 _falhas.pop(ip, None)
                 session.clear()
                 session.permanent = True
                 session['autorizado'] = True
+                session['pin_versao'] = versao
                 proximo = request.args.get('proximo', '')
                 # só aceita caminhos internos (evita redirecionar para outro site);
                 # o navegador lê "\" como "/", então "/\site.com" também é outro site

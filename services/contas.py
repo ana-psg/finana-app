@@ -38,7 +38,7 @@ def registrar_lancamento(conn, tipo, descricao, valor, data, conta_id, categoria
         raise ErroNegocio('Tipo de lançamento inválido.')
     if valor <= 0:
         raise ErroNegocio('Informe um valor maior que zero.')
-    if not conn.execute('SELECT 1 FROM accounts WHERE id = ?', (conta_id,)).fetchone():
+    if not conn.execute('SELECT 1 FROM accounts WHERE id = ? AND is_active = 1', (conta_id,)).fetchone():
         raise ErroNegocio('Escolha uma conta válida.')
 
     cur = conn.execute('''

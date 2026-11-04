@@ -30,5 +30,12 @@ def index():
 def apagar(id):
     # Desativa em vez de apagar: compras e parcelas continuam ligadas ao cartão
     with conectar() as conn:
-        conn.execute('UPDATE cards SET is_active = 0 WHERE id = ?', (id,))
+        pendente = conn.execute('''
+            SELECT COUNT(*) FROM installments i JOIN card_purchases cp ON cp.id = i.purchase_id
+            WHERE cp.card_id = ? AND i.status = 'PENDENTE'
+        ''', (id,)).fetchone()[0]
+        if pendente:
+            flash(f'Esse cartão ainda tem {pendente} parcela(s) pendente(s). Pague as faturas antes de removê-lo.', 'erro')
+        else:
+            conn.execute('UPDATE cards SET is_active = 0 WHERE id = ?', (id,))
     return redirect(url_for('cartoes.index'))

@@ -3,6 +3,8 @@ from flask import Blueprint, flash, redirect, render_template, request, url_for
 from db import conectar
 from utils import ErroNegocio, agora, data_valida, dinheiro, texto_obrigatorio
 
+TIPOS = ('corrente', 'poupanca', 'beneficio', 'fisico', 'pagamento', 'investimento', 'outro')
+
 bp = Blueprint('contas', __name__)
 
 
@@ -11,7 +13,7 @@ def index():
     if request.method == 'POST':
         f = request.form
         try:
-            dados = (texto_obrigatorio(f.get('name'), 'o nome da conta'), f.get('type') or 'outro',
+            dados = (texto_obrigatorio(f.get('name'), 'o nome da conta'), f.get('type') if f.get('type') in TIPOS else 'outro',
                      dinheiro(f.get('balance'), 'Saldo'), (data_valida(f.get('date')) or agora()).strftime('%Y-%m-%d'))
             with conectar() as conn:
                 conn.execute('INSERT INTO accounts (name, type, balance, balance_date) VALUES (?, ?, ?, ?)', dados)
