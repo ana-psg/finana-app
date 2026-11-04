@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}Chaves Pix{% endblock %}
+{% block page_title %}Chaves Pix{% endblock %}
+{% block page_subtitle %}Suas chaves Pix cadastradas e as contas ligadas a cada uma{% endblock %}
+
+{% block extra_head %}
+<script>
+    function copiarChave(botao, chave) {
+        const feito = () => { const t = botao.textContent; botao.textContent = 'Copiado!'; setTimeout(() => botao.textContent = t, 1500); };
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(chave).then(feito);
+        } else {
+            const campo = document.createElement('textarea');
+            campo.value = chave; document.body.appendChild(campo); campo.select();
+            document.execCommand('copy'); campo.remove(); feito();
+        }
+    }
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+    <div class="card lg:col-span-1 h-fit">
+        <h3 class="text-lg font-bold mb-4">Nova Chave Pix</h3>
+        <form method="POST" class="flex flex-col gap-4">
+            <div>
+                <label class="block text-xs text-gray-400 mb-1">Chave</label>
+                <input type="text" name="key" required class="w-full px-4 py-2 rounded-xl text-sm" placeholder="Ex: email, telefone ou chave aleatória">
+            </div>
+            <div>
+                <label class="block text-xs text-gray-400 mb-1">Tipo de Chave</label>
+                <select name="key_type" required class="w-full px-4 py-2 rounded-xl text-sm">
+                    <option value="Telefone">Telefone</option>
+                    <option value="E-mail">E-mail</option>
+                    <option value="CPF">CPF</option>
+                    <option value="Aleatória">Aleatória</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs text-gray-400 mb-1">Instituição</label>
+                <input type="text" name="institution" required class="w-full px-4 py-2 rounded-xl text-sm" placeholder="Ex: Banco Inter">
+            </div>
+            <div>
+                <label class="block text-xs text-gray-400 mb-1">Tipo de Conta</label>
+                <select name="account_type" class="w-full px-4 py-2 rounded-xl text-sm">
+                    <option value="Conta corrente">Conta corrente</option>
+                    <option value="Conta de pagamento">Conta de pagamento</option>
+                    <option value="Poupança">Poupança</option>
+                </select>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">Agência</label>
+                    <input type="text" name="agency" class="w-full px-4 py-2 rounded-xl text-sm" placeholder="0001">
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">Conta</label>
+                    <input type="text" name="account_number" class="w-full px-4 py-2 rounded-xl text-sm" placeholder="12345-6">
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs text-gray-400 mb-1">Criada em</label>
+                <input type="date" name="created_at" class="w-full px-4 py-2 rounded-xl text-sm">
+            </div>
+            <button type="submit" class="mt-2 py-3 rounded-xl bg-marca text-white font-bold text-sm hover:opacity-90 transition-opacity">Cadastrar Chave</button>
+        </form>
+    </div>
+
+    <div class="card lg:col-span-2">
+        <h3 class="text-lg font-bold mb-4">Chaves Cadastradas</h3>
+        <div class="flex flex-col gap-3">
+            {% for ch in chaves %}
+            <div class="flex justify-between items-center border-b border-borda pb-3 gap-4">
+                <div class="min-w-0">
+                    <p class="font-bold text-white text-sm break-all">{{ ch.key }} <span class="text-xs text-gray-400 font-normal">({{ ch.key_type }})</span></p>
+                    <p class="text-xs text-gray-500">
+                        {{ ch.institution }} • {{ ch.account_type }}
+                        {% if ch.agency %} • Ag. {{ ch.agency }}{% endif %}
+                        {% if ch.account_number %} • Conta {{ ch.account_number }}{% endif %}
+                    </p>
+                    <p class="text-xs text-gray-500">
+                        {% if ch.created_at %}Criada em {{ ch.created_at | data_br }} • {% endif %}
+                        <span class="{% if ch.status == 'Ativa' %}text-emerald-400{% else %}text-amber-400{% endif %}">{{ ch.status }}</span>
+                    </p>
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                    <button type="button" data-chave="{{ ch.key }}" onclick="copiarChave(this, this.dataset.chave)" aria-label="Copiar chave {{ ch.key }}" class="text-xs font-semibold px-3 py-1 rounded bg-pink-600/20 text-pink-400 hover:bg-pink-600/30">Copiar</button>
+                    <form action="{{ url_for('pix.apagar', id=ch.id) }}" method="POST" onsubmit="return confirm('Tem certeza?');">
+                        <button type="submit" aria-label="Apagar chave {{ ch.key }}" class="text-red-500 hover:text-red-400 text-xs font-semibold px-3 py-1 rounded bg-borda">Apagar</button>
+                    </form>
+                </div>
+            </div>
+            {% else %}
+            <p class="text-gray-500 text-sm">Nenhuma chave Pix cadastrada.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

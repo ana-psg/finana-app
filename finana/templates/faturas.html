@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% block title %}Compras no Cartão{% endblock %}
+{% block page_title %}Compras no Cartão{% endblock %}
+{% block page_subtitle %}Registre suas compras parceladas e pague faturas{% endblock %}
+
+{% block content %}
+{% set meses = lista_meses(mes_selecionado) %}
+
+<div class="card mb-6 lg:mb-8 flex flex-wrap justify-between items-center gap-3">
+    <form method="GET" action="{{ url_for('faturas.index') }}" class="flex flex-wrap items-center gap-2 sm:gap-4">
+        <label class="text-sm font-bold text-white">Mês de Referência da Fatura:</label>
+        <select name="mes" class="px-4 py-2 rounded-xl text-sm bg-painel border border-borda text-white" onchange="this.form.submit()">
+            {% for valor, label in meses %}
+            <option value="{{ valor }}" {% if mes_selecionado == valor %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </form>
+</div>
+
+<!-- GRELHA DE RESUMO DOS CARTÕES CORRIGIDA -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 mb-8">
+    {% for c in cartoes_info %}
+    <div class="card relative overflow-hidden">
+        {% if c.eh_atual %}
+        <div class="absolute top-0 right-0 bg-pink-600 text-white text-2xs font-bold px-3 py-1 rounded-bl-xl">MÊS DE HOJE</div>
+        {% endif %}
+        <h3 class="text-lg font-bold text-white mb-1">{{ c.name }}</h3>
+        <p class="text-xs text-gray-400 mb-4">Fecha: {{ c.fecha }} | Vence: {{ c.vence }}</p>
+        <div class="flex justify-between items-end">
+            <div>
+                <p class="text-2xs uppercase tracking-wider text-gray-500 font-bold mb-1">Total Fatura {{ c.fatura_label }}</p>
+                <p class="text-xl lg:text-2xl font-bold 
+                    {% if c.status == 'aberta' %}text-emerald-400
+                    {% elif c.status == 'paga' %}text-indigo-400
+                    {% else %}text-rose-400{% endif %}">
+                    {{ (c.total_pendente or 0) | brl }}
+                </p>
+            </div>
+            <span class="text-xs font-bold px-3 py-1 rounded-full 
+                {% if c.status == 'aberta' %}bg-emerald-500/20 text-emerald-400
+                {% elif c.status == 'paga' %}bg-indigo-500/20 text-indigo-400
+                {% else %}bg-rose-500/20 text-rose-400{% endif %}">
+                {{ c.status | upper }}
+            </span>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+    <div class="card lg:col-span-1 h-fit">
+        <h3 class="text-lg font-bold mb-4">Nova Compra</h3>
+        <form method="POST" action="{{ url_for('faturas.index', mes=mes_selecionado) }}" class="flex flex-col gap-4">
+            <div>
+                <label class="block text-xs text-gray-400 mb-1">Cartão de Crédito</label>
+                <select name="card_id" required class="w-full px-4 py-2 rounded-xl text-sm">
+                    {% for c in cartoes %}
+                    <option value="{{ c.id }}">{{ c.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs text-gray-400 mb-1">Descrição da Compra</label>
+                <input type="text" name="description" required class="w-full px-4 py-2 rounded-xl text-sm" placeholder="Ex: Passagem de ônibus">
+            </div>
+            <div>
+                <label class="block text-xs text-gray-400 mb-1">Valor Total (R$)</label>
+                <input type="text" name="total_amount" required class="w-full px-4 py-2 rounded-xl text-sm" placeholder="0,00">
+            </div>
+            <div>
+                <label class="block text-xs text-gray-400 mb-1">Categoria</label>
+                <select name="category_id" required class="w-full px-4 py-2 rounded-xl text-sm">
+                    {% for cat in categorias %}
+                    <option value="{{ cat.id }}">{{ cat.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs text-gray-400 mb-1">Nº de Parcelas</label>
+                <input type="number" name="installments" required min="1" value="1" class="w-full px-4 py-2 rounded-xl text-sm">
+            </div>
+            <div>
+                <label class="block text-xs text-gray-400 mb-1">Data da Compra</label>
+                <input type="date" name="date" required class="w-full px-4 py-2 rounded-xl text-sm">
+            </div>
+            <button type="submit" class="mt-2 py-3 rounded-xl bg-marca text-white font-bold text-sm hover:opacity-90 transition-opacity">Registrar Compra</button>
+        </form>
+    </div>
+
+    <div class="card lg:col-span-2 h-fit">
+        <h3 class="text-lg font-bold mb-4">Lançamentos em {% for v, l in meses if v == mes_selecionado %}{{ l }}{% else %}{{ mes_selecionado }}{% endfor %}</h3>
+        <div class="flex flex-col gap-3 mb-6">
+            {% for item in itens_fatura %}
+            <div class="flex justify-between items-center border-b border-borda pb-3">
+                <div>
+                    <p class="font-bold text-white text-sm">{{ item.description }} <span class="text-xs text-gray-400 font-normal">({{ item.cartao }})</span></p>
+                    <p class="text-xs text-gray-500">Parcela {{ item.installment_number }}/{{ item.total_installments }} • Status: <span class="{% if item.status == 'PAGO' %}text-emerald-400{% else %}text-amber-400{% endif %}">{{ item.status }}</span></p>
+                </div>
+                <span class="font-bold text-rose-400 text-sm">{{ item.amount | brl }}</span>
+            </div>
+            {% else %}
+            <p class="text-gray-500 text-sm">Nenhuma compra faturada para este mês.</p>
+            {% endfor %}
+        </div>
+
+        <h4 class="text-md font-bold mb-3 text-white border-t border-borda pt-4">Pagar Fatura de um Cartão</h4>
+        <form action="{{ url_for('faturas.pagar') }}" method="POST" class="flex flex-col gap-3">
+            <input type="hidden" name="competence_month" value="{{ mes_selecionado }}">
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">Selecione o Cartão</label>
+                    <select name="card_id" required class="w-full px-4 py-2 rounded-xl text-sm">
+                        {% for c in cartoes %}
+                        <option value="{{ c.id }}">{{ c.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">Conta para Débito</label>
+                    <select name="account_id" required class="w-full px-4 py-2 rounded-xl text-sm">
+                        {% for acc in contas %}
+                        <option value="{{ acc.id }}">{{ acc.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <button type="submit" class="py-2.5 rounded-xl bg-marca text-white font-bold text-sm hover:opacity-90 transition-opacity">Pagar Fatura do Mês e Atualizar Saldo</button>
+        </form>
+    </div>
+</div>
+
+<div class="card mt-8">
+    <h3 class="text-lg font-bold mb-4">Histórico de Faturas Pagas</h3>
+    <div class="flex flex-col gap-3">
+        {% for h in historico %}
+        <div class="flex justify-between items-center border-b border-borda pb-3">
+            <div>
+                <p class="font-bold text-white text-sm">Cartão: {{ h.cartao }} <span class="text-xs text-gray-400 font-normal">(Mês: {{ h.competence_month }})</span></p>
+                <p class="text-xs text-gray-500">Pago em: {{ h.paid_date | data_br }} via {{ h.conta }}</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="font-bold text-emerald-400 text-sm">{{ h.total_amount | brl }}</span>
+                {% if h.transaction_id %}
+                <form action="{{ url_for('faturas.desfazer', id=h.id) }}" method="POST" onsubmit="return confirm('Desfazer este pagamento? A fatura volta a ficar pendente e o valor volta para a conta.');">
+                    <input type="hidden" name="mes" value="{{ mes_selecionado }}">
+                    <button type="submit" class="text-xs text-gray-400 hover:text-white underline">Desfazer</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+        {% else %}
+        <p class="text-gray-500 text-sm">Nenhum histórico de fatura paga registrado.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

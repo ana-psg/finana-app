@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Lançamentos{% endblock %}
+{% block page_title %}Lançamentos{% endblock %}
+{% block page_subtitle %}Registre receitas e despesas avulsas nas suas contas{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+    <div class="card lg:col-span-1 h-fit">
+        <h3 class="text-lg font-bold mb-4">Novo Lançamento</h3>
+        <form method="POST" class="flex flex-col gap-4">
+            <div>
+                <label class="block text-xs text-gray-400 mb-1">Tipo</label>
+                <select name="type" required class="w-full px-4 py-2 rounded-xl text-sm">
+                    <option value="despesa">Despesa</option>
+                    <option value="receita">Receita</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs text-gray-400 mb-1">Descrição</label>
+                <input type="text" name="description" required class="w-full px-4 py-2 rounded-xl text-sm" placeholder="Ex: Supermercado">
+            </div>
+            <div>
+                <label class="block text-xs text-gray-400 mb-1">Valor (R$)</label>
+                <input type="text" name="amount" required class="w-full px-4 py-2 rounded-xl text-sm" placeholder="0,00">
+            </div>
+            <div>
+                <label class="block text-xs text-gray-400 mb-1">Conta</label>
+                <select name="account_id" required class="w-full px-4 py-2 rounded-xl text-sm">
+                    {% for acc in contas %}
+                    <option value="{{ acc.id }}">{{ acc.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs text-gray-400 mb-1">Categoria</label>
+                <select name="category_id" required class="w-full px-4 py-2 rounded-xl text-sm">
+                    {% for cat in categorias %}
+                    <option value="{{ cat.id }}">{{ cat.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs text-gray-400 mb-1">Data</label>
+                <input type="date" name="date" required class="w-full px-4 py-2 rounded-xl text-sm">
+            </div>
+            <div>
+                <label class="block text-xs text-gray-400 mb-1">Conta no relatório de</label>
+                <select name="reference_month" class="w-full px-4 py-2 rounded-xl text-sm">
+                    <option value="">Automático</option>
+                    {% for valor, label in lista_meses(mes_atual) %}
+                    <option value="{{ valor }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+                <p class="text-2xs text-gray-500 mt-1">Automático: mês da data. Receita a partir do dia 25 (ex: salário) conta no mês seguinte.</p>
+            </div>
+            <button type="submit" class="mt-2 py-3 rounded-xl bg-marca text-white font-bold text-sm hover:opacity-90 transition-opacity">Registrar</button>
+        </form>
+    </div>
+
+    <div class="card lg:col-span-2">
+        <h3 class="text-lg font-bold mb-4">Histórico de Lançamentos</h3>
+        <div class="flex flex-col gap-3">
+            {% for l in lancamentos_lista %}
+            <div class="flex justify-between items-center border-b border-borda pb-3">
+                <div>
+                    <p class="font-bold text-white text-sm">{{ l.description }} <span class="text-xs text-gray-400 font-normal">({{ l.conta }} • {{ l.categoria }})</span></p>
+                    <p class="text-xs text-gray-500">{{ l.date | data_br }}
+                        {% if l.reference_month and l.reference_month != l.date[:7] %}
+                        <span class="ml-1 px-1.5 py-0.5 rounded bg-indigo-500/15 text-indigo-300">conta em {{ nome_mes(l.reference_month) }}</span>
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="flex flex-wrap items-center gap-2 sm:gap-4">
+                    <span class="font-bold text-sm {% if l.type == 'receita' %}text-emerald-400{% else %}text-red-500{% endif %}">
+                        {% if l.type == 'receita' %}+{% else %}-{% endif %} {{ l.amount | brl }}
+                    </span>
+                    <form action="{{ url_for('lancamentos.apagar', id=l.id) }}" method="POST" onsubmit="return confirm('Tem certeza?');">
+                        <button type="submit" aria-label="Excluir lançamento {{ l.description }}" class="text-gray-500 hover:text-red-400 text-xs px-2 py-1">Excluir</button>
+                    </form>
+                </div>
+            </div>
+            {% else %}
+            <p class="text-gray-500 text-sm">Nenhum lançamento registrado.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

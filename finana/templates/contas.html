@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Contas{% endblock %}
+{% block page_title %}Gestão de Contas{% endblock %}
+{% block page_subtitle %}Adicione ou remova as suas contas (Itaú, Inter, Flash, etc.){% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+    <div class="card lg:col-span-1 h-fit">
+        <h3 class="text-lg font-bold mb-4">Nova Conta</h3>
+        <form method="POST" class="flex flex-col gap-4">
+            <div>
+                <label class="block text-xs text-gray-400 mb-1">Nome da Conta</label>
+                <input type="text" name="name" required class="w-full px-4 py-2 rounded-xl text-sm" placeholder="Ex: Itaú, Flash">
+            </div>
+            <div>
+                <label class="block text-xs text-gray-400 mb-1">Tipo</label>
+                <select name="type" required class="w-full px-4 py-2 rounded-xl text-sm">
+                    <option value="corrente">Corrente</option>
+                    <option value="poupanca">Poupança</option>
+                    <option value="beneficio">Benefício (Ex: Flash)</option>
+                    <option value="fisico">Dinheiro Físico</option>
+                    <option value="pagamento">Conta de Pagamento</option>
+                    <option value="investimento">Investimentos / Corretora</option>
+                    <option value="outro">Outro</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs text-gray-400 mb-1">Saldo Inicial (R$)</label>
+                <input type="text" name="balance" required class="w-full px-4 py-2 rounded-xl text-sm" placeholder="0,00">
+            </div>
+            <div>
+                <label class="block text-xs text-gray-400 mb-1">Data de Referência</label>
+                <input type="date" name="date" required class="w-full px-4 py-2 rounded-xl text-sm">
+            </div>
+            <button type="submit" class="mt-2 py-3 rounded-xl bg-marca text-white font-bold text-sm hover:opacity-90 transition-opacity">Cadastrar Conta</button>
+        </form>
+    </div>
+
+    <div class="card lg:col-span-2">
+        <h3 class="text-lg font-bold mb-4">Contas Cadastradas</h3>
+        <div class="flex flex-col gap-3">
+            {% for conta in contas_lista %}
+            <div class="flex justify-between items-center border-b border-borda pb-3">
+                <div>
+                    <p class="font-bold text-white text-sm">{{ conta.name }} <span class="text-xs text-gray-400 font-normal">({{ conta.type }})</span></p>
+                    <p class="text-xs text-gray-500">Saldo: {{ conta.balance | brl }}</p>
+                </div>
+                <form action="{{ url_for('contas.apagar', id=conta.id) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja apagar esta conta?');">
+                    <button type="submit" aria-label="Apagar conta {{ conta.name }}" class="text-red-500 hover:text-red-400 text-xs font-semibold px-3 py-1 rounded bg-borda">Apagar</button>
+                </form>
+            </div>
+            {% else %}
+            <p class="text-gray-500 text-sm">Nenhuma conta cadastrada.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

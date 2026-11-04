@@ -2,6 +2,11 @@
 
 O AnaFins é um aplicativo de controle financeiro pessoal feito com foco em privacidade (local-first): sem nuvem, sem integração bancária e sem cadastro. Todos os dados ficam num banco SQLite no próprio computador. É feito em Python (Flask) e abre como aplicativo de desktop com a biblioteca pywebview. Também pode ser usado pelo celular, no Wi‑Fi de casa.
 
+<p>
+  <img src="docs/visao-geral.png" alt="Visão geral do AnaFins com saldos, obrigações e últimos lançamentos (dados de exemplo)" width="640">
+  <img src="docs/lancar-rapido-celular.png" alt="Tela Lançar rápido no celular (dados de exemplo)" width="180">
+</p>
+
 ## Funcionalidades
 
 * **Lançar rápido:** registra um gasto ou uma entrada em segundos, pensado para o celular.
@@ -18,7 +23,7 @@ O AnaFins é um aplicativo de controle financeiro pessoal feito com foco em priv
 
 ## Tecnologias
 
-* Back-end: Python 3.10+ e Flask
+* Back-end: Python 3.11+ e Flask
 * Front-end: HTML5, Jinja2 e Tailwind CSS
 * Banco de dados: SQLite (`financas_local.db`)
 * Desktop: pywebview
@@ -26,7 +31,7 @@ O AnaFins é um aplicativo de controle financeiro pessoal feito com foco em priv
 ## Instalação e Execução
 
 ### Pré-requisitos
-Python 3.10 ou superior.
+Python 3.11 ou superior.
 
 ### Passo a passo
 
@@ -39,8 +44,8 @@ Python 3.10 ou superior.
    ```bash
    pip install -r requirements.txt
    ```
-3. Abra o app com um duplo clique em `AnaFins.bat`, ou rode `python desktop.py`.
-   Para abrir no navegador, rode `python app.py` e acesse http://127.0.0.1:8000.
+3. Abra o app com um duplo clique em `AnaFins.bat`, ou rode `python main.py`.
+   Para abrir no navegador, rode `python -m finana.app` e acesse http://127.0.0.1:8000.
 
 O banco `financas_local.db` é criado sozinho na primeira execução e **nunca vai para o Git**.
 
@@ -56,39 +61,47 @@ Na primeira vez, permita o Python em **Redes privadas** quando o Windows pergunt
 ## Organização do Código
 
 ```
-app.py              monta o app (banco + filtros + rotas)
-desktop.py          abre o app numa janela própria (pywebview)
-db.py               conexão com o SQLite, criação do banco e migrações
-schema.sql          estrutura das tabelas (fonte da verdade do banco)
-utils.py            dinheiro (R$), meses e leitura de formulários
-services/           regras de negócio, sem nada de tela
-  contas.py           saldos, lançamentos e mês de referência
-  cartoes.py          compras parceladas, faturas e pagamento de fatura
-  pagamentos.py       pagar por conta ou cartão (e desfazer), usado pelas despesas
-  despesas_fixas.py   pagar / desfazer / excluir despesa fixa
-  a_pagar.py          dívidas com pessoas e suas parcelas
-  config.py           configurações (PIN do celular)
-  relatorio.py        números do relatório mensal e da visão geral
-  relatorio_pdf.py    monta o PDF do relatório completo (fpdf2)
-routes/             uma tela por arquivo (Flask Blueprints); acesso.py = PIN do celular
-templates/          HTML (Jinja2 + Tailwind); _macros.html = peças reaproveitadas
-static/             logo e ícones
-scripts/            setup_db.py (cria/recria o banco) e seed.py (dados de teste)
-tests/              testes automáticos
+main.py             abre o app numa janela própria (o AnaFins.bat chama ele)
+finana/             o app
+  app.py              monta o app (banco + filtros + rotas)
+  desktop.py          janela própria (pywebview) e servidor local
+  db.py               conexão com o SQLite, criação do banco e migrações
+  schema.sql          estrutura das tabelas (fonte da verdade do banco)
+  utils.py            dinheiro (R$), meses e leitura de formulários
+  net.py, qr.py       origem dos pedidos e QR code do celular
+  services/           regras de negócio, sem nada de tela
+    contas.py           saldos, lançamentos e mês de referência
+    cartoes.py          compras parceladas, faturas e pagamento de fatura
+    pagamentos.py       pagar por conta ou cartão (e desfazer), usado pelas despesas
+    despesas_fixas.py   pagar / desfazer / excluir despesa fixa
+    a_pagar.py          dívidas com pessoas e suas parcelas
+    config.py           configurações (PIN do celular)
+    relatorio.py        números do relatório mensal e da visão geral
+    relatorio_pdf.py    monta o PDF do relatório completo (fpdf2)
+  routes/             uma tela por arquivo (Flask Blueprints); acesso.py = PIN do celular
+  templates/          HTML (Jinja2 + Tailwind); _macros.html = peças reaproveitadas
+  static/             CSS gerado pelo Tailwind, logo e ícones
+tools/              setup_db.py (cria/recria o banco) e seed.py (dados de exemplo)
+tests/              testes automáticos (pytest) e capturas de tela (e2e_telas.py)
 backups/            cópias de segurança locais (fora do Git)
 ```
 
 **Regra da casa:** a rota lê o formulário e mostra a tela; o cálculo e as mudanças no banco ficam em `services/`. Assim cada regra existe num lugar só e pode ser testada sem abrir o app.
 
-Para criar uma tela nova: crie `routes/<area>.py` com um Blueprint chamado `bp`, adicione o nome em `routes/__init__.py` e no menu de `templates/base.html`.
+Para criar uma tela nova: crie `finana/routes/<area>.py` com um Blueprint chamado `bp`, adicione o nome em `finana/routes/__init__.py` e no menu de `finana/templates/base.html`.
 
 ## Testes
 
 ```bash
-python -m unittest -v
+pip install -r requirements-dev.txt
+ruff check . && ruff format --check .
+python -m pytest
 ```
 
 Os testes usam um banco temporário e nunca tocam no `financas_local.db`.
+Para ver as telas: `python tests/e2e_telas.py` (salva capturas em `data/telas`).
+
+Depois de usar uma classe nova do Tailwind nos templates, gere o CSS de novo com `npm run css`.
 
 ## Privacidade
 

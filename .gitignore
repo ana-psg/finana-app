@@ -1,30 +1,39 @@
-# Base de dados local (dados pessoais)
-financas_local.db
-
-# Backups
-Backup.rar
-*.rar
+# Dados pessoais: banco, cópias e backups (nunca vão para o Git)
+*.db
+*.db-*
+*.db.bak
+backups/
 *.zip
+*.rar
+
+# Logs (podem citar descrições de lançamentos)
+*.log
+
+# Scripts antigos de uso único (contêm valores reais)
+tools/legado/
+scripts/legado/
+
+# Anotações locais de sessões
+registro-claude/
 
 # Python
 __pycache__/
 *.pyc
-
-# Ambiente virtual
+.venv/
 venv/
 env/
-.venv/
+.pytest_cache/
+.ruff_cache/
+
+# Node (Tailwind)
+node_modules/
+
+# Capturas de tela dos testes
+data/
 
 # Sistema e IDE
 .DS_Store
 Thumbs.db
 .vscode/
 .idea/
-# Cópias de segurança do banco
-*.db.bak
-
-# Backups locais (contêm dados financeiros)
-backups/
-
-# Scripts antigos de uso único (contêm valores reais)
-scripts/legado/
+.env

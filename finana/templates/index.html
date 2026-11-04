@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Visão Geral{% endblock %}
+{% block page_title %}Visão Geral{% endblock %}
+{% block page_subtitle %}Resumo consolidado do seu patrimônio e saúde financeira{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 lg:gap-6 mb-8">
+    <div class="card">
+        <h3 class="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2">Saldo Total (Contas)</h3>
+        <p class="text-2xl lg:text-3xl font-bold text-white">{{ saldo_contas | brl }}</p>
+    </div>
+    <div class="card">
+        <h3 class="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2">Obrigações Pendentes</h3>
+        <p class="text-2xl lg:text-3xl font-bold {% if obrigacoes > 0 %}text-rose-400{% else %}text-gray-300{% endif %}">{% if obrigacoes > 0 %}- {% endif %}{{ obrigacoes | brl }}</p>
+    </div>
+    <div class="card">
+        <h3 class="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2">Disponível Real</h3>
+        <p class="text-2xl lg:text-3xl font-bold {% if disponivel_real >= 0 %}text-emerald-400{% else %}text-red-500{% endif %}">
+            {{ disponivel_real | brl }}
+        </p>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+    <div class="card">
+        <h3 class="text-lg font-bold mb-4">Saldos nas Contas</h3>
+        <div class="flex flex-col gap-3">
+            {% for c in contas_lista %}
+            <div class="flex justify-between items-center border-b border-borda pb-3">
+                <span class="text-gray-300 text-sm font-medium">{{ c.name }}</span>
+                <span class="font-bold text-white">{{ c.balance | brl }}</span>
+            </div>
+            {% else %}
+            <p class="text-gray-500 text-sm">Nenhuma conta cadastrada.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="card">
+        <h3 class="text-lg font-bold mb-4">Últimos Lançamentos</h3>
+        <div class="flex flex-col gap-3">
+            {% for l in lancamentos_lista %}
+            <div class="flex justify-between items-center border-b border-borda pb-3">
+                <div>
+                    <p class="text-gray-200 text-sm font-medium">{{ l.description }}</p>
+                    <p class="text-xs text-gray-500">{{ l.date | data_br }}</p>
+                </div>
+                <span class="font-bold text-sm {% if l.type == 'receita' %}text-emerald-400{% else %}text-red-500{% endif %}">
+                    {% if l.type == 'receita' %}+{% else %}-{% endif %} {{ l.amount | brl }}
+                </span>
+            </div>
+            {% else %}
+            <p class="text-gray-500 text-sm">Nenhum lançamento recente.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

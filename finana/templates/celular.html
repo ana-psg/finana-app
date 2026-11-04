@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Usar no celular{% endblock %}
+{% block page_title %}Usar no celular{% endblock %}
+{% block page_subtitle %}Lance pelo celular quando estiver no Wi‑Fi de casa, com o computador ligado e o AnaFins aberto{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+    <div class="card h-fit">
+        <h3 class="text-lg font-bold mb-1">1. {% if tem_pin %}Trocar o PIN{% else %}Crie um PIN{% endif %}</h3>
+        <p class="text-xs text-gray-400 mb-4">O celular pede esse PIN para abrir suas finanças. Aqui no computador ele não é pedido.</p>
+        {% if tem_pin %}<p class="text-xs text-emerald-400 mb-4">✓ PIN já definido.</p>{% endif %}
+        <form method="POST" class="flex flex-col gap-4">
+            <input type="password" name="pin" inputmode="numeric" pattern="[0-9]*" required placeholder="PIN (4 a 8 números)" class="w-full px-4 py-2 rounded-xl text-sm">
+            <input type="password" name="confirmacao" inputmode="numeric" pattern="[0-9]*" required placeholder="Repita o PIN" class="w-full px-4 py-2 rounded-xl text-sm">
+            {% if erro %}<p class="text-rose-400 text-sm">{{ erro }}</p>{% endif %}
+            {% if ok %}<p class="text-emerald-400 text-sm">{{ ok }}</p>{% endif %}
+            <button type="submit" class="py-3 rounded-xl bg-marca text-white font-bold text-sm">Salvar PIN</button>
+        </form>
+    </div>
+
+    <div class="card">
+        <h3 class="text-lg font-bold mb-1">2. Abra no celular</h3>
+        {% if endereco %}
+        <p class="text-xs text-gray-400 mb-4">Com o celular no mesmo Wi‑Fi, aponte a câmera para o código ou digite o endereço no navegador:</p>
+        <div class="flex flex-col items-center gap-4">
+            <div class="bg-white p-3 rounded-xl w-52">{{ qr | safe }}</div>
+            <p class="text-xl font-bold text-pink-400 select-all">{{ endereco }}</p>
+        </div>
+        {% else %}
+        <p class="text-sm text-amber-400">Não encontrei o IP deste computador na rede. Confira se ele está conectado ao Wi‑Fi.</p>
+        {% endif %}
+
+        <h3 class="text-lg font-bold mt-6 mb-2">3. Vire um app</h3>
+        <ul class="text-sm text-gray-300 flex flex-col gap-1 list-disc pl-5">
+            <li><b>Android (Chrome):</b> menu ⋮ → <i>Adicionar à tela inicial</i>.</li>
+            <li><b>iPhone (Safari):</b> botão Compartilhar → <i>Adicionar à Tela de Início</i>.</li>
+        </ul>
+
+        <h3 class="text-lg font-bold mt-6 mb-2">Se não abrir</h3>
+        <ul class="text-sm text-gray-400 flex flex-col gap-1 list-disc pl-5">
+            <li>O AnaFins precisa estar aberto aqui no computador.</li>
+            <li>Na primeira vez, o Windows pergunta se o Python pode usar a rede: marque <b>Redes privadas</b> e permita.</li>
+            <li>Confira se o Wi‑Fi de casa está como <b>rede privada</b> no Windows (Configurações → Rede e Internet → Wi‑Fi).</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

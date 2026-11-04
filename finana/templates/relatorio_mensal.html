@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Relatório Mensal{% endblock %}
+{% block page_title %}Relatório Consolidado do Mês{% endblock %}
+{% block page_subtitle %}Visão completa de entradas, despesas, faturas de cartão e balanço geral{% endblock %}
+
+{% block content %}
+{% set meses = lista_meses(mes_selecionado) %}
+
+<div class="card mb-6 lg:mb-8 flex flex-wrap justify-between items-center gap-3">
+    <form method="GET" action="{{ url_for('relatorio_mensal.index') }}" class="flex flex-wrap items-center gap-2 sm:gap-4">
+        <label class="text-sm font-bold text-white">Selecionar Mês de Análise:</label>
+        <select name="mes" class="px-4 py-2 rounded-xl text-sm bg-painel border border-borda text-white" onchange="this.form.submit()">
+            {% for valor, label in meses %}
+            <option value="{{ valor }}" {% if mes_selecionado == valor %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </form>
+    <a href="{{ url_for('relatorio_mensal.exportar_pdf', mes=mes_selecionado) }}"
+       class="px-5 py-2.5 rounded-xl bg-marca text-white font-bold text-sm hover:opacity-90 transition-opacity">
+        Exportar relatório completo (PDF)
+    </a>
+</div>
+
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-5 mb-8">
+    <div class="card">
+        <h3 class="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2">Entradas (Receitas)</h3>
+        <p class="text-xl lg:text-2xl font-bold text-emerald-400">+ {{ total_receitas | brl }}</p>
+    </div>
+    <div class="card">
+        <h3 class="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2">Total em Faturas (Cartão)</h3>
+        <p class="text-xl lg:text-2xl font-bold text-rose-400">- {{ total_faturas | brl }}</p>
+    </div>
+    <div class="card">
+        <h3 class="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2">Total de Saídas Gerais</h3>
+        <p class="text-xl lg:text-2xl font-bold text-red-500">- {{ total_saidas | brl }}</p>
+    </div>
+    <div class="card">
+        <h3 class="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2">Balanço Líquido do Mês</h3>
+        <p class="text-xl lg:text-2xl font-bold {% if saldo_liquido_mes >= 0 %}text-emerald-400{% else %}text-red-500{% endif %}">
+            {{ saldo_liquido_mes | brl }}
+        </p>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+    <div class="card">
+        <h3 class="text-lg font-bold mb-4">Lançamentos do Mês</h3>
+        <div class="flex flex-col gap-3">
+            {% for l in lancamentos_mes %}
+            <div class="flex justify-between items-center border-b border-borda pb-3">
+                <div>
+                    <p class="text-gray-200 text-sm font-medium">{{ l.description }} <span class="text-xs text-gray-500">({{ l.conta }})</span></p>
+                    <p class="text-xs text-gray-500">{{ l.date | data_br }} • {{ l.categoria }}</p>
+                </div>
+                <span class="font-bold text-sm {% if l.type == 'receita' %}text-emerald-400{% else %}text-red-500{% endif %}">
+                    {% if l.type == 'receita' %}+{% else %}-{% endif %} {{ l.amount | brl }}
+                </span>
+            </div>
+            {% else %}
+            <p class="text-gray-500 text-sm">Nenhum lançamento registrado neste mês.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="card">
+        <h3 class="text-lg font-bold mb-4">Parcelas e Faturas no Cartão</h3>
+        <div class="flex flex-col gap-3">
+            {% for f in faturas_mes %}
+            <div class="flex justify-between items-center border-b border-borda pb-3">
+                <div>
+                    <p class="text-gray-200 text-sm font-medium">{{ f.description }} <span class="text-xs text-gray-500">({{ f.cartao }})</span></p>
+                    <p class="text-xs text-gray-500">Parcela {{ f.installment_number }}/{{ f.total_installments }} • Status: <span class="{% if f.status == 'PAGO' %}text-emerald-400{% else %}text-amber-400{% endif %}">{{ f.status }}</span></p>
+                </div>
+                <span class="font-bold text-rose-400 text-sm">
+                    {{ f.amount | brl }}
+                </span>
+            </div>
+            {% else %}
+            <p class="text-gray-500 text-sm">Nenhuma fatura de cartão neste mês.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

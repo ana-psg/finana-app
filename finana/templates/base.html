@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>AnaFins - {% block title %}Visão Geral{% endblock %}</title>
+    <!-- celular: "Adicionar à tela inicial" abre como app -->
+    <link rel="manifest" href="{{ url_for('acesso.manifest') }}">
+    <meta name="theme-color" content="#0f0f13">
+    <meta name="description" content="AnaFins: controle financeiro pessoal e local.">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='icon-192.png') }}">
+    <link rel="icon" href="{{ url_for('static', filename='icon-192.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='tailwind.css') }}">
+    <script>
+        // Formulário de pagamento: mostra a lista de contas ou de cartões conforme a forma escolhida
+        function atualizarDestino(select, uid) {
+            const contas = document.getElementById('contas-' + uid);
+            const cartoes = document.getElementById('cartoes-' + uid);
+            const porConta = select.value === 'conta';
+            contas.hidden = !porConta;  contas.required = porConta;
+            cartoes.hidden = porConta;  cartoes.required = !porConta;
+            (porConta ? cartoes : contas).value = '';
+        }
+        // Celular: abre/fecha o menu lateral
+        function alternarMenu(abrir) {
+            document.getElementById('menu').classList.toggle('-translate-x-full', !abrir);
+            document.getElementById('fundo-menu').hidden = !abrir;
+        }
+    </script>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="flex h-dvh overflow-hidden">
+
+    {% set menu_items = [
+        ('rapido',           'Lançar rápido'),
+        ('dashboard',        'Visão geral'),
+        ('contas',           'Contas'),
+        ('pix',              'Chaves Pix'),
+        ('categorias',       'Categorias'),
+        ('cartoes',          'Cartões'),
+        ('faturas',          'Compras no Cartão'),
+        ('lancamentos',      'Lançamentos'),
+        ('relatorio_mensal', 'Relatório Mensal'),
+        ('orcamento',        'Orçamento'),
+        ('despesas_fixas',   'Despesas'),
+        ('investimentos',    'Investimentos')
+    ] %}
+    {% set active = request.blueprint %}
+    {% set no_computador = pedido_local() %}
+
+    <div id="fundo-menu" class="fixed inset-0 bg-black/60 z-30 lg:hidden" onclick="alternarMenu(false)" hidden></div>
+
+    <div id="menu" class="sidebar w-64 flex flex-col justify-between py-6 overflow-y-auto
+                          fixed inset-y-0 left-0 z-40 -translate-x-full transition-transform lg:static lg:translate-x-0">
+        <div>
+            <div class="px-6 mb-8 flex justify-between items-center">
+                <h1 class="text-2xl font-bold tracking-widest text-white">AnaFins</h1>
+                <button type="button" class="lg:hidden text-gray-400 text-2xl" onclick="alternarMenu(false)" aria-label="Fechar menu">×</button>
+            </div>
+            <nav class="px-4 flex flex-col gap-2" aria-label="Menu principal">
+                {% for area, label in menu_items %}
+                {% set atual = active == area or (area == 'despesas_fixas' and active == 'a_pagar') %}
+                <a href="{{ url_for(area ~ '.index') }}" {% if atual %}aria-current="page"{% endif %}
+                   class="px-4 py-3 rounded-xl cursor-pointer block text-sm
+                          {% if atual %}active-menu{% else %}text-gray-400 hover:bg-realce hover:text-white{% endif %}">
+                    {{ label }}
+                </a>
+                {% endfor %}
+            </nav>
+        </div>
+        <div class="px-6 mt-6 flex flex-col gap-2 text-xs text-gray-500">
+            {% if no_computador %}
+            <a href="{{ url_for('acesso.configuracoes') }}" class="hover:text-white {% if request.endpoint == 'acesso.configuracoes' %}text-pink-400{% endif %}">📱 Usar no celular</a>
+            {% else %}
+            <a href="{{ url_for('acesso.sair') }}" class="hover:text-white">Sair</a>
+            {% endif %}
+            <span>AnaFins v2.0</span>
+        </div>
+    </div>
+
+    <main class="flex-1 min-w-0 overflow-auto p-4 lg:p-10">
+        <header class="mb-6 lg:mb-8 flex justify-between items-center gap-3">
+            <div class="flex items-center gap-3 min-w-0">
+                <button type="button" class="lg:hidden shrink-0 w-10 h-10 rounded-xl bg-cartao border border-borda text-xl"
+                        onclick="alternarMenu(true)" aria-label="Abrir menu">☰</button>
+                <div class="min-w-0">
+                    <h2 class="text-xl lg:text-2xl font-bold">{% block page_title %}Visão Geral{% endblock %}</h2>
+                    <p class="text-gray-400 text-xs lg:text-sm mt-1 hidden sm:block">{% block page_subtitle %}Resumo consolidado do seu patrimônio e saúde financeira{% endblock %}</p>
+                </div>
+            </div>
+            <img src="{{ url_for('static', filename='logo-96.png') }}" alt="Logo AnaFins" class="h-10 w-10 lg:h-12 lg:w-12 object-contain shrink-0">
+        </header>
+
+        {% with mensagens = get_flashed_messages(with_categories=true) %}
+        {% for categoria, mensagem in mensagens %}
+        <div role="{{ 'alert' if categoria == 'erro' else 'status' }}" class="mb-6 px-4 py-3 rounded-xl text-sm font-medium
+                    {% if categoria == 'erro' %}bg-rose-500/15 text-rose-300 border border-rose-500/30
+                    {% else %}bg-emerald-500/15 text-emerald-300 border border-emerald-500/30{% endif %}">
+            {{ mensagem }}
+        </div>
+        {% endfor %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+</body>
+</html>

@@ -1,0 +1,31 @@
+[project]
+name = "finana"
+version = "2.0.0"
+description = "Finana: controle financeiro pessoal e local (contas, cartões, faturas, orçamento e relatório)"
+requires-python = ">=3.11"
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+extend-exclude = [".venv", "tools/legado", "node_modules"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF"]
+ignore = [
+    "RUF001", "RUF002", "RUF003",  # textos em português têm acentos e travessões de propósito
+    "SIM105",                      # try/except/pass é mais claro que contextlib.suppress aqui
+    "E501",                        # o formatador cuida das linhas; só SQL longo passa do limite
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["E402", "E501", "B017", "SIM117", "RUF015"]
+"tools/*" = ["E402"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["finana"]
+
+[tool.ruff.format]
+quote-style = "single"  # o código do Finana sempre usou aspas simples
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
