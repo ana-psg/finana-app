@@ -8,9 +8,11 @@
 import socket
 import time
 
-from flask import Blueprint, abort, jsonify, redirect, render_template, request, session, url_for
+from flask import Blueprint, Response, abort, jsonify, redirect, render_template, request, session, url_for
 
 from db import conectar
+from net import host_allowed, is_local_request, outro_site, public_host
+from qr import svg as qr_svg
 from services import config
 from utils import ErroNegocio
 
@@ -20,11 +22,8 @@ PORTA = 8000
 MAX_TENTATIVAS = 5
 BLOQUEIO_SEGUNDOS = 5 * 60
 _falhas = {}  # ip -> (quantidade de erros seguidos, bloqueado até)
-LIVRES = {'static', 'acesso.entrar', 'acesso.manifest'}
-
-
-def eh_local():
-    return request.remote_addr in ('127.0.0.1', '::1')
+LIVRES = {'static', 'acesso.entrar', 'acesso.manifest', 'acesso.ping'}
+ganchos = {}  # desktop.py preenche: 'mostrar' traz a janela para frente
 
 
 def ip_na_rede():
@@ -38,8 +37,18 @@ def ip_na_rede():
 
 
 @bp.before_app_request
+def bloquear_outros_sites():
+    """Endereço de outro site (DNS rebinding) ou envio vindo de outro site (CSRF)."""
+    if not (host_allowed(request.host) and host_allowed(public_host())):
+        return Response('Endereço não permitido.', 403)
+    if outro_site():
+        return Response('Pedido de outro site bloqueado.', 403)
+    return None
+
+
+@bp.before_app_request
 def exigir_pin():
-    if request.endpoint in LIVRES or eh_local() or session.get('autorizado'):
+    if request.endpoint in LIVRES or is_local_request() or session.get('autorizado'):
         return None
     return redirect(url_for('acesso.entrar', proximo=request.path))
 
@@ -85,7 +94,7 @@ def sair():
 @bp.route('/celular', methods=['GET', 'POST'])
 def configuracoes():
     """Só no computador: definir o PIN e ver o endereço para abrir no celular."""
-    if not eh_local():
+    if not is_local_request():
         abort(403)
     erro = ok = None
     if request.method == 'POST':
@@ -99,7 +108,23 @@ def configuracoes():
         tem_pin = config.tem_pin(conn)
     ip = ip_na_rede()
     endereco = f'http://{ip}:{PORTA}' if ip else None
-    return render_template('celular.html', tem_pin=tem_pin, endereco=endereco, erro=erro, ok=ok)
+    return render_template('celular.html', tem_pin=tem_pin, endereco=endereco, erro=erro, ok=ok,
+                           qr=qr_svg(endereco) if endereco else '')
+
+
+@bp.route('/ping')
+def ping():
+    """Permite ao desktop.py descobrir se já tem um AnaFins aberto nesta porta."""
+    return jsonify(app='AnaFins')
+
+
+@bp.route('/janela/mostrar', methods=['POST'])
+def mostrar_janela():
+    if not is_local_request():
+        abort(403)
+    if ganchos.get('mostrar'):
+        ganchos['mostrar']()
+    return jsonify(ok=True)
 
 
 @bp.route('/manifest.webmanifest')

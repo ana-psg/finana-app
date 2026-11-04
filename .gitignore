@@ -6,6 +6,9 @@ Backup.rar
 *.rar
 *.zip
 
+# Logs (podem citar descrições de lançamentos)
+*.log
+
 # Python
 __pycache__/
 *.pyc

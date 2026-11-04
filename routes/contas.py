@@ -1,7 +1,7 @@
-from flask import Blueprint, redirect, render_template, request, url_for
+from flask import Blueprint, flash, redirect, render_template, request, url_for
 
 from db import conectar
-from utils import parse_money
+from utils import ErroNegocio, agora, data_valida, dinheiro, texto_obrigatorio
 
 bp = Blueprint('contas', __name__)
 
@@ -9,10 +9,14 @@ bp = Blueprint('contas', __name__)
 @bp.route('/contas', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
-        with conectar() as conn:
-            conn.execute('INSERT INTO accounts (name, type, balance, balance_date) VALUES (?, ?, ?, ?)',
-                         (request.form['name'].strip(), request.form['type'],
-                          parse_money(request.form.get('balance')), request.form.get('date', '')))
+        f = request.form
+        try:
+            dados = (texto_obrigatorio(f.get('name'), 'o nome da conta'), f.get('type') or 'outro',
+                     dinheiro(f.get('balance'), 'Saldo'), (data_valida(f.get('date')) or agora()).strftime('%Y-%m-%d'))
+            with conectar() as conn:
+                conn.execute('INSERT INTO accounts (name, type, balance, balance_date) VALUES (?, ?, ?, ?)', dados)
+        except ErroNegocio as e:
+            flash(str(e), 'erro')
         return redirect(url_for('contas.index'))
 
     with conectar() as conn:

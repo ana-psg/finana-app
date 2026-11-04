@@ -2,7 +2,7 @@ from flask import Blueprint, flash, redirect, render_template, request, url_for
 
 from db import conectar
 from services.contas import excluir_lancamento, registrar_lancamento
-from utils import ErroNegocio, data_valida, mes_atual, mes_valido, nome_mes, parse_money
+from utils import ErroNegocio, data_valida, mes_atual, mes_valido, nome_mes, parse_money, texto_obrigatorio
 
 bp = Blueprint('lancamentos', __name__)
 
@@ -14,8 +14,9 @@ def index():
         try:
             if not data_valida(f.get('date')):
                 raise ErroNegocio('Informe a data do lançamento.')
+            descricao = texto_obrigatorio(f.get('description'), 'a descrição')
             with conectar() as conn:
-                registrar_lancamento(conn, f.get('type'), f['description'].strip(), parse_money(f.get('amount')),
+                registrar_lancamento(conn, f.get('type'), descricao, parse_money(f.get('amount')),
                                      f['date'], f.get('account_id'), f.get('category_id'),
                                      mes_valido(f.get('reference_month'), None))  # vazio = automático
         except ErroNegocio as e:

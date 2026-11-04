@@ -6,8 +6,8 @@
 from calendar import monthrange
 from datetime import date
 
-from services.contas import excluir_lancamento, registrar_lancamento
-from utils import ErroNegocio, add_months, nome_mes
+from services.contas import categoria_ou_nada, excluir_lancamento, registrar_lancamento
+from utils import ErroNegocio, add_months, agora, nome_mes
 
 
 def competencia_da_compra(data_compra, closing_day, due_day):
@@ -42,7 +42,7 @@ def registrar_compra(conn, cartao_id, descricao, valor_total, data_compra, categ
 
     compra_id = conn.execute(
         'INSERT INTO card_purchases (card_id, description, total_amount, date, category_id) VALUES (?, ?, ?, ?, ?)',
-        (cartao_id, descricao, valor_total, data_compra.strftime('%Y-%m-%d'), categoria_id)).lastrowid
+        (cartao_id, descricao, valor_total, data_compra.strftime('%Y-%m-%d'), categoria_ou_nada(conn, categoria_id))).lastrowid
 
     ano, mes = map(int, competencia_da_compra(data_compra, cartao['closing_day'], cartao['due_day']).split('-'))
     valor_parcela = round(valor_total / parcelas, 2)
@@ -114,13 +114,14 @@ def pagar_fatura(conn, cartao_id, conta_id, mes):
     valor = _total(conn, cartao_id, mes, so_pendente=True)
     if valor <= 0:
         return 0
+    momento = agora()
     # o lançamento explica a saída do saldo; o relatório não conta como despesa nova (ver services/relatorio.py)
     transacao_id = registrar_lancamento(conn, 'despesa', f"Pagamento Fatura {cartao['name']} ({nome_mes(mes)})",
-                                        valor, date.today().isoformat(), conta_id, None, mes_referencia=mes)
+                                        valor, momento.strftime('%Y-%m-%d'), conta_id, None, mes_referencia=mes)
     pagamento_id = conn.execute('''
         INSERT INTO card_invoices_history (card_id, competence_month, total_amount, paid_date, account_id, transaction_id)
-        VALUES (?, ?, ?, datetime('now', 'localtime'), ?, ?)
-    ''', (cartao_id, mes, valor, conta_id, transacao_id)).lastrowid
+        VALUES (?, ?, ?, ?, ?, ?)
+    ''', (cartao_id, mes, valor, momento.strftime('%Y-%m-%d %H:%M:%S'), conta_id, transacao_id)).lastrowid
     conn.execute('''
         UPDATE installments SET status = 'PAGO', invoice_payment_id = ?
         WHERE status = 'PENDENTE' AND competence_month = ?

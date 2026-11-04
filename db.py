@@ -26,9 +26,12 @@ def conectar():
         with conectar() as conn:
             conn.execute(...)
     """
-    conn = sqlite3.connect(DB_FILE)
+    conn = sqlite3.connect(DB_FILE, timeout=30)
     conn.row_factory = sqlite3.Row
     try:
+        # Reserva a escrita já no começo: dois pedidos ao mesmo tempo (duplo clique, PC e celular)
+        # não podem ler o mesmo estado e pagar a mesma conta duas vezes.
+        conn.execute('BEGIN IMMEDIATE')
         yield conn
         conn.commit()
     except Exception:

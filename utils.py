@@ -3,46 +3,57 @@
 # Helpers reutilizáveis: dinheiro, datas/meses e leitura de formulários.
 # =============================================================
 
+import math
 import re
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from flask import Flask
+
+try:
+    FUSO = ZoneInfo('America/Sao_Paulo')
+except ZoneInfoNotFoundError:  # Windows sem o pacote tzdata; o Brasil não tem horário de verão desde 2019
+    FUSO = timezone(timedelta(hours=-3))
+VALOR_MAXIMO = 1e12
+ANO_MINIMO, ANO_MAXIMO = 2000, 2100
 
 
 # ---------------------------------------------------------------
 # Dinheiro
 # ---------------------------------------------------------------
 
+def _ler_dinheiro(value):
+    """Valor em float, ou None se o texto não for um valor em reais."""
+    if isinstance(value, (int, float)):
+        return float(value) if math.isfinite(value) else None
+    s = str(value or '').replace('R$', '').replace(' ', '').strip()
+    if re.fullmatch(r'[+-]?\d{1,3}(\.\d{3})+(,\d{1,2})?', s) or re.fullmatch(r'[+-]?\d+,\d{1,2}', s):
+        s = s.replace('.', '').replace(',', '.')   # padrão BR: 1.500 / 1.234,56 / 10,5
+    elif re.fullmatch(r'[+-]?\d{1,3}(,\d{3})+\.\d{1,2}', s):
+        s = s.replace(',', '')                     # padrão US: 1,234.56
+    elif not re.fullmatch(r'[+-]?\d+(\.\d{1,2})?', s):
+        return None
+    numero = round(float(s), 2)
+    return numero if abs(numero) < VALOR_MAXIMO else None
+
+
 def parse_money(value) -> float:
     """
-    Converte string monetária (padrão BR ou US) para float.
+    Converte texto em dinheiro, no padrão BR ou US.
 
         '1.234,56' / '1234,56' / '1,234.56' / '1234.56' / 'R$ 1.234,56' -> 1234.56
-        '' ou None -> 0.0
-
-    Retorna 0.0 em caso de falha (não estoura exceção).
+        '1.500' -> 1500.0 (ponto seguido de 3 dígitos é separador de milhar)
+        vazio ou inválido ('abc', 'inf', '1,234') -> 0.0 (não estoura exceção)
     """
-    if value is None or value == '':
-        return 0.0
-    if isinstance(value, (int, float)):
-        return float(value)
+    return _ler_dinheiro(value) or 0.0
 
-    s = str(value).strip().replace('R$', '').replace(' ', '').strip()
-    if not s:
-        return 0.0
 
-    if ',' in s and '.' in s:
-        if s.rfind(',') > s.rfind('.'):
-            s = s.replace('.', '').replace(',', '.')  # padrão BR
-        else:
-            s = s.replace(',', '')                     # padrão US
-    elif ',' in s:
-        s = s.replace(',', '.')
-
-    try:
-        return round(float(s), 2)
-    except ValueError:
-        return 0.0
+def dinheiro(value, campo) -> float:
+    """Como parse_money, mas avisa quando o texto é inválido (para campos em que zero é um valor válido)."""
+    numero = _ler_dinheiro(value)
+    if numero is None:
+        raise ErroNegocio(f'{campo}: valor inválido. Use o formato 1.234,56.')
+    return numero
 
 
 def brl(value) -> str:
@@ -62,8 +73,13 @@ MESES_PT = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
             'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro']
 
 
+def agora() -> datetime:
+    """Hora de São Paulo, sem fuso, seja qual for o fuso do computador."""
+    return datetime.now(FUSO).replace(tzinfo=None)
+
+
 def mes_atual() -> str:
-    return datetime.now().strftime('%Y-%m')
+    return agora().strftime('%Y-%m')
 
 
 def add_months(ano, mes, n):
@@ -79,14 +95,14 @@ def nome_mes(competence) -> str:
 
 def mes_valido(valor, padrao):
     """Aceita só 'AAAA-MM' (mês 01-12); qualquer outra coisa vira o padrão."""
-    if valor and re.fullmatch(r'\d{4}-(0[1-9]|1[0-2])', valor):
+    if valor and re.fullmatch(r'\d{4}-(0[1-9]|1[0-2])', valor) and ANO_MINIMO <= int(valor[:4]) <= ANO_MAXIMO:
         return valor
     return padrao
 
 
 def lista_meses(mes_selecionado=None, antes=12, depois=15):
     """Opções do seletor de mês: 12 meses pra trás e 15 pra frente, sempre incluindo o selecionado."""
-    hoje = datetime.now()
+    hoje = agora()
     meses = [f"{a}-{m:02d}" for a, m in (add_months(hoje.year, hoje.month, n) for n in range(-antes, depois + 1))]
     if mes_selecionado and mes_selecionado not in meses:
         meses = sorted(meses + [mes_selecionado])
@@ -111,11 +127,20 @@ def inteiro(valor, padrao=None, minimo=None, maximo=None):
 
 
 def data_valida(valor):
-    """'AAAA-MM-DD' válido -> datetime; qualquer outra coisa -> None."""
+    """'AAAA-MM-DD' válido e de um ano possível -> datetime; qualquer outra coisa -> None."""
     try:
-        return datetime.strptime(valor or '', '%Y-%m-%d')
+        data = datetime.strptime(valor or '', '%Y-%m-%d')
     except ValueError:
         return None
+    return data if ANO_MINIMO <= data.year <= ANO_MAXIMO else None
+
+
+def texto_obrigatorio(valor, campo, maximo=200):
+    """Texto sem espaços nas pontas; avisa se vier vazio."""
+    texto = (valor or '').strip()
+    if not texto:
+        raise ErroNegocio(f'Informe {campo}.')
+    return texto[:maximo]
 
 
 class ErroNegocio(ValueError):

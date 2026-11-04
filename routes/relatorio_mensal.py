@@ -1,11 +1,9 @@
-from datetime import datetime
-
 from flask import Blueprint, Response, render_template, request
 
 from db import conectar
 from services import relatorio
 from services.relatorio_pdf import gerar_pdf
-from utils import mes_atual, mes_valido
+from utils import agora, mes_atual, mes_valido
 
 bp = Blueprint('relatorio_mensal', __name__)
 
@@ -33,6 +31,6 @@ def index():
 def exportar_pdf():
     mes = mes_valido(request.args.get('mes'), mes_atual())
     with conectar() as conn:
-        dados = relatorio.relatorio_completo(conn, mes, datetime.now())
+        dados = relatorio.relatorio_completo(conn, mes, agora())
     return Response(gerar_pdf(dados), mimetype='application/pdf', headers={
         'Content-Disposition': f'attachment; filename="AnaFins_relatorio_{mes}.pdf"'})

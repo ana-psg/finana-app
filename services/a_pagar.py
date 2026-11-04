@@ -6,8 +6,9 @@
 from calendar import monthrange
 from datetime import date
 
+from services.contas import categoria_ou_nada
 from services.pagamentos import desfazer, pagar_via
-from utils import ErroNegocio, add_months
+from utils import ErroNegocio, add_months, agora
 
 
 def criar(conn, pessoa, descricao, valor, modo, parcelas, primeiro_vencimento, categoria_id=None):
@@ -29,8 +30,9 @@ def criar(conn, pessoa, descricao, valor, modo, parcelas, primeiro_vencimento, c
 
     divida_id = conn.execute('''
         INSERT INTO debts (person, description, total_amount, category_id, created_at)
-        VALUES (?, ?, ?, ?, date('now', 'localtime'))
-    ''', (pessoa, descricao, round(sum(valores), 2), categoria_id)).lastrowid
+        VALUES (?, ?, ?, ?, ?)
+    ''', (pessoa, descricao, round(sum(valores), 2), categoria_ou_nada(conn, categoria_id),
+          agora().strftime('%Y-%m-%d'))).lastrowid
 
     dia = primeiro_vencimento.day
     for i, v in enumerate(valores):

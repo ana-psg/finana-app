@@ -27,12 +27,18 @@ def create_app():
     with conectar() as conn:
         app.secret_key = chave_secreta(conn)  # sessões (login do celular) e avisos na tela
     app.config.update(
+        SESSION_COOKIE_NAME='anafins_session',             # cookies valem para o endereço em qualquer porta
         SESSION_COOKIE_SAMESITE='Lax',                     # outro site não consegue enviar formulários em seu nome
         SESSION_COOKIE_HTTPONLY=True,
         PERMANENT_SESSION_LIFETIME=timedelta(days=90),     # o celular fica logado por 90 dias
     )
     register_jinja_filters(app)
     registrar_rotas(app)
+
+    @app.errorhandler(OverflowError)
+    def numero_grande_demais(_e):
+        return 'Número fora do intervalo aceito.', 400
+
     return app
 
 

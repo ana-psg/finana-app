@@ -1,17 +1,15 @@
-from datetime import datetime
-
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 
 from db import conectar
 from services import cartoes as svc
-from utils import ErroNegocio, add_months, brl, data_valida, inteiro, mes_valido, parse_money
+from utils import ErroNegocio, add_months, agora, brl, data_valida, inteiro, mes_valido, parse_money, texto_obrigatorio
 
 bp = Blueprint('faturas', __name__)
 
 
 def _mes_padrao():
     """Por padrão mostra a fatura do mês que vem."""
-    hoje = datetime.now()
+    hoje = agora()
     a, m = add_months(hoje.year, hoje.month, 1)
     return f"{a}-{m:02d}"
 
@@ -26,8 +24,9 @@ def index():
             data_compra = data_valida(f.get('date'))
             if not data_compra:
                 raise ErroNegocio('Informe a data da compra.')
+            descricao = texto_obrigatorio(f.get('description'), 'a descrição')
             with conectar() as conn:
-                svc.registrar_compra(conn, f.get('card_id'), f['description'].strip(), parse_money(f.get('total_amount')),
+                svc.registrar_compra(conn, f.get('card_id'), descricao, parse_money(f.get('total_amount')),
                                      data_compra, f.get('category_id'), inteiro(f.get('installments'), 1, 1, 99))
         except ErroNegocio as e:
             flash(str(e), 'erro')
@@ -53,7 +52,7 @@ def index():
             LEFT JOIN accounts a ON h.account_id = a.id
             ORDER BY h.competence_month DESC
         ''').fetchall()
-        cartoes_info = svc.resumo_faturas(conn, mes, datetime.now())
+        cartoes_info = svc.resumo_faturas(conn, mes, agora())
 
     return render_template('faturas.html', cartoes_info=cartoes_info, cartoes=cartoes, contas=contas,
                            categorias=categorias, itens_fatura=itens_fatura, mes_selecionado=mes, historico=historico)

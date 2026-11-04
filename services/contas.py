@@ -20,6 +20,12 @@ def mes_referencia_padrao(tipo, data):
     return data[:7]
 
 
+def categoria_ou_nada(conn, valor):
+    """Id da categoria, se ela existir; vazio ou inexistente = sem categoria."""
+    linha = conn.execute('SELECT id FROM categories WHERE id = ?', (valor,)).fetchone() if valor else None
+    return linha['id'] if linha else None
+
+
 def movimentar_saldo(conn, conta_id, delta):
     """Soma delta ao saldo, sempre arredondando em centavos (evita 219,82999...)."""
     conn.execute('UPDATE accounts SET balance = ROUND(balance + ?, 2) WHERE id = ?', (delta, conta_id))
@@ -38,7 +44,8 @@ def registrar_lancamento(conn, tipo, descricao, valor, data, conta_id, categoria
     cur = conn.execute('''
         INSERT INTO transactions (type, description, amount, date, account_id, category_id, reference_month)
         VALUES (?, ?, ?, ?, ?, ?, ?)
-    ''', (tipo, descricao, valor, data, conta_id, categoria_id, mes_referencia or mes_referencia_padrao(tipo, data)))
+    ''', (tipo, descricao, valor, data, conta_id, categoria_ou_nada(conn, categoria_id),
+          mes_referencia or mes_referencia_padrao(tipo, data)))
     movimentar_saldo(conn, conta_id, valor if tipo == 'receita' else -valor)
     return cur.lastrowid
 

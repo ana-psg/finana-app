@@ -1,8 +1,9 @@
-from flask import Blueprint, redirect, render_template, request, url_for
+from flask import Blueprint, flash, redirect, render_template, request, url_for
 
 from db import conectar
+from services.contas import categoria_ou_nada
 from services.relatorio import EH_PAGAMENTO_DE_FATURA, MES_DO_LANCAMENTO
-from utils import mes_atual, parse_money
+from utils import ErroNegocio, dinheiro, mes_atual
 
 bp = Blueprint('orcamento', __name__)
 
@@ -10,9 +11,17 @@ bp = Blueprint('orcamento', __name__)
 @bp.route('/orcamento', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
-        with conectar() as conn:
-            conn.execute('INSERT OR REPLACE INTO budgets (category_id, amount_limit) VALUES (?, ?)',
-                         (request.form.get('category_id'), parse_money(request.form.get('amount_limit'))))
+        try:
+            limite = dinheiro(request.form.get('amount_limit'), 'Limite')
+            if limite <= 0:
+                raise ErroNegocio('Informe um limite maior que zero.')
+            with conectar() as conn:
+                categoria = categoria_ou_nada(conn, request.form.get('category_id'))
+                if categoria is None:
+                    raise ErroNegocio('Escolha uma categoria.')
+                conn.execute('INSERT OR REPLACE INTO budgets (category_id, amount_limit) VALUES (?, ?)', (categoria, limite))
+        except ErroNegocio as e:
+            flash(str(e), 'erro')
         return redirect(url_for('orcamento.index'))
 
     # Gasto do MÊS ATUAL: lançamentos do mês + parcelas de cartão que caem na fatura do mês

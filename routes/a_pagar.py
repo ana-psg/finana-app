@@ -1,10 +1,8 @@
-from datetime import datetime
-
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 
 from db import conectar
 from services import a_pagar as svc
-from utils import ErroNegocio, brl, data_valida, inteiro, parse_money
+from utils import ErroNegocio, agora, brl, data_valida, inteiro, parse_money
 
 bp = Blueprint('a_pagar', __name__)
 
@@ -43,7 +41,7 @@ def index():
         total_aberto = conn.execute("SELECT COALESCE(ROUND(SUM(amount), 2), 0) FROM debt_installments WHERE paid_date IS NULL"
                                     ).fetchone()[0]
 
-    hoje = datetime.now().strftime('%Y-%m-%d')
+    hoje = agora().strftime('%Y-%m-%d')
     return render_template('a_pagar.html', dividas=dividas, categorias=categorias, contas=contas, cartoes=cartoes,
                            total_aberto=total_aberto, data_hoje=hoje, mostrar_quitadas=mostrar_quitadas)
 
@@ -53,7 +51,7 @@ def pagar(id):
     f = request.form
     try:
         with conectar() as conn:
-            svc.pagar_parcela(conn, id, data_valida(f.get('paid_date')) or datetime.now(),
+            svc.pagar_parcela(conn, id, data_valida(f.get('paid_date')) or agora(),
                               f.get('pagamento_tipo'), f.get('conta_id'), f.get('cartao_id'))
             valor = conn.execute('SELECT amount FROM debt_installments WHERE id = ?', (id,)).fetchone()[0]
         flash(f'Parcela paga: {brl(valor)}.', 'ok')

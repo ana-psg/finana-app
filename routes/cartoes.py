@@ -1,7 +1,7 @@
-from flask import Blueprint, redirect, render_template, request, url_for
+from flask import Blueprint, flash, redirect, render_template, request, url_for
 
 from db import conectar
-from utils import inteiro, parse_money
+from utils import ErroNegocio, dinheiro, inteiro, texto_obrigatorio
 
 bp = Blueprint('cartoes', __name__)
 
@@ -10,12 +10,15 @@ bp = Blueprint('cartoes', __name__)
 def index():
     if request.method == 'POST':
         f = request.form
-        with conectar() as conn:
-            conn.execute(
-                'INSERT INTO cards (name, bank, limit_total, closing_day, due_day) VALUES (?, ?, ?, ?, ?)',
-                (f['name'].strip(), f['bank'].strip(), parse_money(f.get('limit_total')),
-                 # dia 0 ou 40 quebraria o cálculo das datas da fatura
-                 inteiro(f.get('closing_day'), 1, 1, 31), inteiro(f.get('due_day'), 10, 1, 31)))
+        try:
+            dados = (texto_obrigatorio(f.get('name'), 'o nome do cartão'), (f.get('bank') or '').strip(),
+                     dinheiro(f.get('limit_total'), 'Limite'),
+                     # dia 0 ou 40 quebraria o cálculo das datas da fatura
+                     inteiro(f.get('closing_day'), 1, 1, 31), inteiro(f.get('due_day'), 10, 1, 31))
+            with conectar() as conn:
+                conn.execute('INSERT INTO cards (name, bank, limit_total, closing_day, due_day) VALUES (?, ?, ?, ?, ?)', dados)
+        except ErroNegocio as e:
+            flash(str(e), 'erro')
         return redirect(url_for('cartoes.index'))
 
     with conectar() as conn:

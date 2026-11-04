@@ -207,8 +207,9 @@ class TestDespesasFixas(Base):
     def test_apagar_compra_do_pagamento_volta_a_pendente(self):
         from services.cartoes import excluir_compra
         self.pagar(pagamento_tipo='cartao', conta_id='', cartao_id=1)
+        compra = um("SELECT id FROM card_purchases")
         with conectar() as conn:
-            excluir_compra(conn, um("SELECT id FROM card_purchases"))
+            excluir_compra(conn, compra)
         self.assertEqual(self.pagamentos(), 0)
 
     def test_sem_conta_escolhida_nao_marca_paga(self):

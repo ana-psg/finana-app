@@ -3,14 +3,12 @@
 # Despesa ou receita numa conta, ou compra (parcelada ou não) num cartão.
 # =============================================================
 
-from datetime import datetime
-
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 
 from db import conectar
 from services.cartoes import registrar_compra
 from services.contas import registrar_lancamento
-from utils import ErroNegocio, brl, data_valida, inteiro, parse_money
+from utils import ErroNegocio, agora, brl, data_valida, inteiro, parse_money
 
 bp = Blueprint('rapido', __name__)
 
@@ -23,7 +21,7 @@ def index():
             tipo = f.get('tipo')
             valor = parse_money(f.get('valor'))
             descricao = f.get('descricao', '').strip() or ('Receita' if tipo == 'receita' else 'Despesa')
-            data = data_valida(f.get('data')) or datetime.now()
+            data = data_valida(f.get('data')) or agora()
             categoria = f.get('categoria') or None
             destino, _, destino_id = (f.get('destino') or '').partition(':')
 
@@ -62,4 +60,4 @@ def index():
             ) ORDER BY date DESC, ordem DESC LIMIT 8
         ''').fetchall()
     return render_template('rapido.html', contas=contas, cartoes=cartoes, categorias=categorias, ultimos=ultimos,
-                           hoje=datetime.now().strftime('%Y-%m-%d'))
+                           hoje=agora().strftime('%Y-%m-%d'))

@@ -1,6 +1,7 @@
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 
 from db import conectar
+from utils import ErroNegocio, texto_obrigatorio
 
 bp = Blueprint('categorias', __name__)
 
@@ -8,9 +9,13 @@ bp = Blueprint('categorias', __name__)
 @bp.route('/categorias', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
-        with conectar() as conn:
-            conn.execute('INSERT INTO categories (name, type) VALUES (?, ?)',
-                         (request.form['name'].strip(), request.form['type']))
+        try:
+            nome = texto_obrigatorio(request.form.get('name'), 'o nome da categoria', 60)
+            with conectar() as conn:
+                conn.execute('INSERT INTO categories (name, type) VALUES (?, ?)',
+                             (nome, request.form.get('type') or 'despesa'))
+        except ErroNegocio as e:
+            flash(str(e), 'erro')
         return redirect(url_for('categorias.index'))
 
     with conectar() as conn:

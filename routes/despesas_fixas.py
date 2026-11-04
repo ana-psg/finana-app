@@ -1,10 +1,9 @@
-from datetime import datetime
-
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 
 from db import conectar
 from services import despesas_fixas as svc
-from utils import ErroNegocio, data_valida, inteiro, mes_atual, mes_valido, parse_money
+from services.contas import categoria_ou_nada
+from utils import ErroNegocio, agora, data_valida, inteiro, mes_atual, mes_valido, parse_money, texto_obrigatorio
 
 bp = Blueprint('despesas_fixas', __name__)
 
@@ -16,12 +15,16 @@ def index():
     if request.method == 'POST':
         f = request.form
         valor = parse_money(f.get('amount'))
-        if valor <= 0:
-            flash('Informe um valor maior que zero.', 'erro')
-        else:
+        try:
+            descricao = texto_obrigatorio(f.get('description'), 'a descrição')
+            if valor <= 0:
+                raise ErroNegocio('Informe um valor maior que zero.')
             with conectar() as conn:
                 conn.execute('INSERT INTO fixed_expenses (description, amount, due_day, category_id) VALUES (?, ?, ?, ?)',
-                             (f['description'].strip(), valor, inteiro(f.get('due_day'), 1, 1, 31), f.get('category_id')))
+                             (descricao, valor, inteiro(f.get('due_day'), 1, 1, 31),
+                              categoria_ou_nada(conn, f.get('category_id'))))
+        except ErroNegocio as e:
+            flash(str(e), 'erro')
         return redirect(url_for('despesas_fixas.index', mes=mes))
 
     with conectar() as conn:
@@ -39,7 +42,7 @@ def index():
 
     return render_template('despesas_fixas.html', categorias=categorias, contas=contas, cartoes=cartoes,
                            despesas_lista=despesas_lista, mes_selecionado=mes,
-                           data_hoje=datetime.now().strftime('%Y-%m-%d'))
+                           data_hoje=agora().strftime('%Y-%m-%d'))
 
 
 @bp.route('/pagar_despesa_fixa/<int:id>', methods=['POST'])
@@ -48,7 +51,7 @@ def pagar(id):
     mes = mes_valido(f.get('competence_month'), mes_atual())
     try:
         with conectar() as conn:
-            svc.pagar(conn, id, mes, data_valida(f.get('paid_date')) or datetime.now(),
+            svc.pagar(conn, id, mes, data_valida(f.get('paid_date')) or agora(),
                       f.get('pagamento_tipo'), f.get('conta_id'), f.get('cartao_id'))
     except ErroNegocio as e:
         flash(str(e), 'erro')

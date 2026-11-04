@@ -1,6 +1,7 @@
-from flask import Blueprint, redirect, render_template, request, url_for
+from flask import Blueprint, flash, redirect, render_template, request, url_for
 
 from db import conectar
+from utils import ErroNegocio, texto_obrigatorio
 
 bp = Blueprint('pix', __name__)
 
@@ -9,13 +10,18 @@ bp = Blueprint('pix', __name__)
 def index():
     if request.method == 'POST':
         f = request.form
-        with conectar() as conn:
-            conn.execute('''
-                INSERT INTO pix_keys (key, key_type, institution, account_type, agency, account_number, created_at, status)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (f['key'].strip(), f['key_type'], f['institution'].strip(), f.get('account_type'),
-                  f.get('agency', '').strip(), f.get('account_number', '').strip(), f.get('created_at'),
-                  f.get('status', 'Ativa')))
+        try:
+            chave = texto_obrigatorio(f.get('key'), 'a chave Pix')
+            instituicao = texto_obrigatorio(f.get('institution'), 'a instituição')
+            with conectar() as conn:
+                conn.execute('''
+                    INSERT INTO pix_keys (key, key_type, institution, account_type, agency, account_number, created_at, status)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                ''', (chave, f.get('key_type') or 'outra', instituicao, f.get('account_type'),
+                      f.get('agency', '').strip(), f.get('account_number', '').strip(), f.get('created_at'),
+                      f.get('status', 'Ativa')))
+        except ErroNegocio as e:
+            flash(str(e), 'erro')
         return redirect(url_for('pix.index'))
 
     with conectar() as conn:
