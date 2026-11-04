@@ -16,19 +16,34 @@ from werkzeug.serving import make_server
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
-sys.path.insert(0, os.path.join(ROOT, 'scripts'))
+sys.path.insert(0, os.path.join(ROOT, 'tools'))
 os.environ['ANAFINS_DB'] = os.path.join(tempfile.mkdtemp(prefix='anafins-e2e-'), 'teste.db')
 OUT = os.environ.get('ANAFINS_TELAS') or tempfile.mkdtemp(prefix='anafins-telas-')
 PORT = 8079
 BASE = f'http://127.0.0.1:{PORT}'
-TELAS = ['/', '/rapido', '/contas', '/pix', '/categorias', '/cartoes', '/faturas', '/lancamentos',
-         '/relatorio_mensal', '/orcamento', '/despesas_fixas', '/a_pagar', '/investimentos', '/celular']
+TELAS = [
+    '/',
+    '/rapido',
+    '/contas',
+    '/pix',
+    '/categorias',
+    '/cartoes',
+    '/faturas',
+    '/lancamentos',
+    '/relatorio_mensal',
+    '/orcamento',
+    '/despesas_fixas',
+    '/a_pagar',
+    '/investimentos',
+    '/celular',
+]
 PERMITIR_EXTERNOS = os.environ.get('ANAFINS_PERMITIR_EXTERNOS') == '1'  # para comparar com versões antigas
 
 
 def main():
-    from app import app
     from seed import seed_database
+
+    from finana.app import app
 
     seed_database()
     srv = make_server('127.0.0.1', PORT, app, threaded=True)

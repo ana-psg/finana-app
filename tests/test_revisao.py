@@ -2,10 +2,10 @@
 
 import pytest
 
-from db import conectar
-from services import cartoes, config
-from services.contas import registrar_lancamento
-from utils import ErroNegocio, agora
+from finana.db import conectar
+from finana.services import cartoes, config
+from finana.services.contas import registrar_lancamento
+from finana.utils import ErroNegocio, agora
 
 from .test_etapa1 import c, um  # noqa: F401  (fixture e helper)
 
@@ -44,10 +44,18 @@ def test_cartao_sem_pendencia_pode_ser_removido(c):  # noqa: F811
     assert um('SELECT is_active FROM cards WHERE id = 1') == 0
 
 
-@pytest.mark.parametrize(('rota', 'dados', 'sql', 'esperado'), [
-    ('/contas', {'name': 'X', 'type': '<script>', 'balance': '0'}, "SELECT type FROM accounts WHERE name = 'X'", 'outro'),
-    ('/categorias', {'name': 'X', 'type': 'qualquer'}, "SELECT type FROM categories WHERE name = 'X'", 'despesa'),
-])
+@pytest.mark.parametrize(
+    ('rota', 'dados', 'sql', 'esperado'),
+    [
+        (
+            '/contas',
+            {'name': 'X', 'type': '<script>', 'balance': '0'},
+            "SELECT type FROM accounts WHERE name = 'X'",
+            'outro',
+        ),
+        ('/categorias', {'name': 'X', 'type': 'qualquer'}, "SELECT type FROM categories WHERE name = 'X'", 'despesa'),
+    ],
+)
 def test_tipo_desconhecido_vira_o_padrao(c, rota, dados, sql, esperado):  # noqa: F811
     c.post(rota, data=dados)
     assert um(sql) == esperado
