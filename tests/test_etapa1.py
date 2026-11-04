@@ -353,7 +353,7 @@ def test_telas_nao_dependem_de_internet():
 def test_estilos_locais_existem_e_tem_as_classes_usadas():
     with open(os.path.join(ROOT, 'finana', 'static', 'tailwind.css'), encoding='utf-8') as f:
         css = f.read()
-    for classe in ('-translate-x-full', 'bg-gradient-to-r', 'lg\\:hidden'):
+    for classe in ('-translate-x-full', 'bg-marca', 'bg-cartao', 'lg\\:hidden'):
         assert classe in css
 
 

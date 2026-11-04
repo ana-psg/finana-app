@@ -161,8 +161,20 @@ class ErroNegocio(ValueError):
     """Erro de regra de negócio com mensagem para mostrar na tela."""
 
 
+def data_br(valor) -> str:
+    """'2026-09-15' ou '2026-09-15 10:30:00' -> '15/09/2026'. Outros textos voltam como vieram."""
+    texto = str(valor or '')
+    if re.match(r'\d{4}-\d{2}-\d{2}', texto):
+        return f'{texto[8:10]}/{texto[5:7]}/{texto[:4]}'
+    return texto
+
+
 def register_jinja_filters(app: Flask) -> None:
     """Registra filtros/globals do Jinja no app Flask."""
+    from finana.net import is_local_request
+
     app.jinja_env.filters['brl'] = brl
+    app.jinja_env.filters['data_br'] = data_br
+    app.jinja_env.globals['pedido_local'] = is_local_request
     app.jinja_env.globals['brl'] = brl
     app.jinja_env.globals['lista_meses'] = lista_meses

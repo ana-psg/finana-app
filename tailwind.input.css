@@ -1,3 +1,43 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-fundo text-gray-100;
+    font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+  }
+  input,
+  select,
+  textarea {
+    @apply bg-painel border border-borda text-white;
+  }
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  button:focus-visible,
+  a:focus-visible {
+    @apply outline-none ring-2 ring-pink-500/70;
+  }
+  /* celular: 16px evita o zoom automático do iPhone ao tocar no campo */
+  @media (max-width: 1023px) {
+    input,
+    select,
+    textarea {
+      font-size: 16px !important; /* vence o text-sm dos campos */
+    }
+  }
+}
+
+@layer components {
+  .sidebar {
+    @apply bg-painel border-r border-realce;
+  }
+  .card {
+    @apply bg-cartao border border-borda rounded-2xl p-4 lg:p-6;
+    box-shadow: 0 4px 20px rgb(0 0 0 / 0.3);
+  }
+  .active-menu {
+    @apply bg-marca font-semibold text-white;
+  }
+}

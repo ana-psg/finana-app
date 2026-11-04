@@ -77,14 +77,14 @@
             </div>
         </div>
 
-        <button type="submit" class="py-4 rounded-xl bg-gradient-to-r from-pink-500 to-red-600 text-white font-bold text-lg active:opacity-80">Lançar</button>
+        <button type="submit" class="py-4 rounded-xl bg-marca text-white font-bold text-lg active:opacity-80">Lançar</button>
     </form>
 
     <div class="card">
         <h3 class="text-sm font-bold mb-3 text-gray-300">Últimos lançamentos</h3>
         <div class="flex flex-col gap-2">
             {% for u in ultimos %}
-            <div class="flex justify-between items-center gap-3 border-b border-[#23232d] pb-2 text-sm">
+            <div class="flex justify-between items-center gap-3 border-b border-borda pb-2 text-sm">
                 <div class="min-w-0">
                     <p class="text-gray-200 truncate">{{ u.description }}</p>
                     <p class="text-xs text-gray-500">{{ u.date[8:10] }}/{{ u.date[5:7] }} • {% if u.type == 'cartao' %}💳 {% endif %}{{ u.onde }}</p>

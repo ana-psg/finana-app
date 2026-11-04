@@ -18,9 +18,9 @@
             </div>
             <div>
                 <label class="block text-xs text-gray-400 mb-1">Limite Máximo (R$)</label>
-                <input type="text" name="amount_limit" required class="w-full px-4 py-2 rounded-xl text-sm" placeholder="0.00">
+                <input type="text" name="amount_limit" required class="w-full px-4 py-2 rounded-xl text-sm" placeholder="0,00">
             </div>
-            <button type="submit" class="mt-2 py-3 rounded-xl bg-gradient-to-r from-pink-500 to-red-600 text-white font-bold text-sm hover:opacity-95 transition-opacity">Salvar Orçamento</button>
+            <button type="submit" class="mt-2 py-3 rounded-xl bg-marca text-white font-bold text-sm hover:opacity-95 transition-opacity">Salvar Orçamento</button>
         </form>
     </div>
 
@@ -28,18 +28,18 @@
         <h3 class="text-lg font-bold mb-4">Acompanhamento de Orçamentos</h3>
         <div class="flex flex-col gap-4">
             {% for o in orcamentos_lista %}
-            <div class="border-b border-[#23232d] pb-4">
+            <div class="border-b border-borda pb-4">
                 <div class="flex justify-between items-center mb-1">
                     <span class="font-bold text-white text-sm">{{ o.categoria }}</span>
                     <span class="text-xs text-gray-400">Gasto: {{ o.gasto | brl }} / Limite: {{ o.amount_limit | brl }}</span>
                 </div>
                 <div class="flex justify-between items-center">
-                    <div class="w-full bg-[#23232d] h-2 rounded-full overflow-hidden mr-4">
+                    <div class="w-full bg-borda h-2 rounded-full overflow-hidden mr-4">
                         {% set pct = (o.gasto / o.amount_limit * 100) if o.amount_limit > 0 else 0 %}
-                        <div class="bg-gradient-to-r from-pink-500 to-red-600 h-full rounded-full" style="width: {{ pct if pct <= 100 else 100 }}%"></div>
+                        <div class="bg-marca h-full rounded-full" style="width: {{ pct if pct <= 100 else 100 }}%"></div>
                     </div>
                     <form action="{{ url_for('orcamento.apagar', id=o.id) }}" method="POST" onsubmit="return confirm('Tem certeza?');">
-                        <button type="submit" class="text-red-500 hover:text-red-400 text-xs font-semibold px-2 py-1 rounded bg-[#23232d]">Apagar</button>
+                        <button type="submit" aria-label="Apagar orçamento de {{ o.categoria }}" class="text-red-500 hover:text-red-400 text-xs font-semibold px-2 py-1 rounded bg-borda">Apagar</button>
                     </form>
                 </div>
             </div>

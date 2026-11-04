@@ -18,7 +18,7 @@
             </div>
             <div>
                 <label class="block text-xs text-gray-400 mb-1">Limite Total (R$)</label>
-                <input type="text" name="limit_total" required class="w-full px-4 py-2 rounded-xl text-sm" placeholder="0.00">
+                <input type="text" name="limit_total" required class="w-full px-4 py-2 rounded-xl text-sm" placeholder="0,00">
             </div>
             <div class="grid grid-cols-2 gap-2">
                 <div>
@@ -30,7 +30,7 @@
                     <input type="number" name="due_day" required class="w-full px-4 py-2 rounded-xl text-sm" placeholder="Ex: 5">
                 </div>
             </div>
-            <button type="submit" class="mt-2 py-3 rounded-xl bg-gradient-to-r from-pink-500 to-red-600 text-white font-bold text-sm hover:opacity-90 transition-opacity">Cadastrar Cartão</button>
+            <button type="submit" class="mt-2 py-3 rounded-xl bg-marca text-white font-bold text-sm hover:opacity-90 transition-opacity">Cadastrar Cartão</button>
         </form>
     </div>
 
@@ -38,13 +38,13 @@
         <h3 class="text-lg font-bold mb-4">Cartões Cadastrados</h3>
         <div class="flex flex-col gap-3">
             {% for cartao in cartoes_lista %}
-            <div class="flex justify-between items-center border-b border-[#23232d] pb-3">
+            <div class="flex justify-between items-center border-b border-borda pb-3">
                 <div>
                     <p class="font-bold text-white text-sm">{{ cartao.name }} <span class="text-xs text-gray-400">({{ cartao.bank }})</span></p>
                     <p class="text-xs text-gray-500">Limite: {{ cartao.limit_total | brl }} | Fecha: Dia {{ cartao.closing_day }} | Vence: Dia {{ cartao.due_day }}</p>
                 </div>
                 <form action="{{ url_for('cartoes.apagar', id=cartao.id) }}" method="POST" onsubmit="return confirm('Tem certeza?');">
-                    <button type="submit" class="text-red-500 hover:text-red-400 text-xs font-semibold px-3 py-1 rounded bg-[#23232d]">Apagar</button>
+                    <button type="submit" aria-label="Apagar cartão {{ cartao.name }}" class="text-red-500 hover:text-red-400 text-xs font-semibold px-3 py-1 rounded bg-borda">Apagar</button>
                 </form>
             </div>
             {% else %}

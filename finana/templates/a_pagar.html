@@ -50,7 +50,7 @@
                 </select>
             </div>
             <p class="text-xs text-gray-500">As parcelas seguintes vencem no mesmo dia dos meses seguintes.</p>
-            <button type="submit" class="mt-1 py-3 rounded-xl bg-gradient-to-r from-pink-500 to-red-600 text-white font-bold text-sm hover:opacity-90 transition-opacity">Cadastrar</button>
+            <button type="submit" class="mt-1 py-3 rounded-xl bg-marca text-white font-bold text-sm hover:opacity-90 transition-opacity">Cadastrar</button>
         </form>
     </div>
 
@@ -67,7 +67,7 @@
         <div class="flex flex-col gap-6">
             {% for item in dividas %}
             {% set d = item.d %}
-            <div class="border-b border-[#23232d] pb-5 {% if item.quitada %}opacity-60{% endif %}">
+            <div class="border-b border-borda pb-5 {% if item.quitada %}opacity-60{% endif %}">
                 <div class="flex justify-between items-start mb-3">
                     <div>
                         <p class="font-bold text-white text-sm">{{ d.person }}{% if d.description %} <span class="text-xs text-gray-400 font-normal">• {{ d.description }}</span>{% endif %}</p>
@@ -78,7 +78,7 @@
                         </p>
                     </div>
                     <form action="{{ url_for('a_pagar.apagar', id=d.id) }}" method="POST" onsubmit="return confirm('Apagar este pagamento a fazer? Pagamentos já feitos continuam nos lançamentos.');">
-                        <button type="submit" class="text-gray-500 hover:text-red-400 text-xs px-2 py-1">Excluir</button>
+                        <button type="submit" aria-label="Excluir pagamento para {{ d.person }}" class="text-gray-500 hover:text-red-400 text-xs px-2 py-1">Excluir</button>
                     </form>
                 </div>
 

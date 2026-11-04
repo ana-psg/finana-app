@@ -55,7 +55,11 @@ def main():
 
     with sync_playwright() as p:
         navegador = p.chromium.launch()
-        for sufixo, tamanho in (('pc', {'width': 1300, 'height': 850}), ('celular', {'width': 390, 'height': 844})):
+        for sufixo, tamanho in (
+            ('pc', {'width': 1300, 'height': 850}),
+            ('tablet', {'width': 768, 'height': 1024}),
+            ('celular', {'width': 390, 'height': 844}),
+        ):
             contexto = navegador.new_context(viewport=tamanho)
             pagina = contexto.new_page()
             pagina.on('pageerror', lambda e: erros.append(f'JS: {e}'))

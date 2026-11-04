@@ -12,7 +12,7 @@
 <div class="card mb-6 lg:mb-8 flex flex-wrap justify-between items-center gap-3">
     <form method="GET" action="{{ url_for('despesas_fixas.index') }}" class="flex flex-wrap items-center gap-2 sm:gap-4">
         <label class="text-sm font-bold text-white">Selecionar Mês:</label>
-        <select name="mes" class="px-4 py-2 rounded-xl text-sm bg-[#141419] border border-[#23232d] text-white" onchange="this.form.submit()">
+        <select name="mes" class="px-4 py-2 rounded-xl text-sm bg-painel border border-borda text-white" onchange="this.form.submit()">
             {% for valor, label in meses %}
             <option value="{{ valor }}" {% if mes_selecionado == valor %}selected{% endif %}>{{ label }}</option>
             {% endfor %}
@@ -30,7 +30,7 @@
             </div>
             <div>
                 <label class="block text-xs text-gray-400 mb-1">Valor (R$)</label>
-                <input type="text" name="amount" required class="w-full px-4 py-2 rounded-xl text-sm" placeholder="0.00">
+                <input type="text" name="amount" required class="w-full px-4 py-2 rounded-xl text-sm" placeholder="0,00">
             </div>
             <div>
                 <label class="block text-xs text-gray-400 mb-1">Dia de Vencimento</label>
@@ -44,7 +44,7 @@
                     {% endfor %}
                 </select>
             </div>
-            <button type="submit" class="mt-2 py-3 rounded-xl bg-gradient-to-r from-pink-500 to-red-600 text-white font-bold text-sm hover:opacity-90 transition-opacity">Cadastrar Despesa</button>
+            <button type="submit" class="mt-2 py-3 rounded-xl bg-marca text-white font-bold text-sm hover:opacity-90 transition-opacity">Cadastrar Despesa</button>
         </form>
     </div>
 
@@ -52,7 +52,7 @@
         <h3 class="text-lg font-bold mb-4">Despesas de {% for v, l in meses if v == mes_selecionado %}{{ l }}{% endfor %}</h3>
         <div class="flex flex-col gap-4">
             {% for d in despesas_lista %}
-            <div class="border-b border-[#23232d] pb-4 flex flex-col gap-3 {% if d.payment_id %}opacity-75{% endif %}">
+            <div class="border-b border-borda pb-4 flex flex-col gap-3 {% if d.payment_id %}opacity-75{% endif %}">
                 <div class="flex justify-between items-center">
                     <div class="flex items-center gap-3">
                         {% if d.payment_id %}
@@ -64,7 +64,7 @@
                             <p class="font-bold text-white text-sm {% if d.payment_id %}line-through text-gray-400{% endif %}">{{ d.description }} <span class="text-xs text-gray-400 font-normal">({{ d.categoria }})</span></p>
                             <p class="text-xs text-gray-500">Vence dia {{ d.due_day }} • <span class="text-rose-500 font-bold">{{ d.amount | brl }}</span></p>
                             {% if d.payment_id %}
-                            <p class="text-xs text-emerald-500 mt-1">Pago no dia: {{ d.payment_date }}</p>
+                            <p class="text-xs text-emerald-500 mt-1">Pago no dia: {{ d.payment_date | data_br }}</p>
                             {% endif %}
                         </div>
                     </div>
@@ -76,7 +76,7 @@
                         </form>
                         {% endif %}
                         <form action="{{ url_for('despesas_fixas.apagar', id=d.id) }}" method="POST" onsubmit="return confirm('Tem certeza?');">
-                            <button type="submit" class="text-gray-500 hover:text-red-400 text-xs px-2 py-1">Excluir</button>
+                            <button type="submit" aria-label="Excluir despesa {{ d.description }}" class="text-gray-500 hover:text-red-400 text-xs px-2 py-1">Excluir</button>
                         </form>
                     </div>
                 </div>

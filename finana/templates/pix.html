@@ -62,7 +62,7 @@
                 <label class="block text-xs text-gray-400 mb-1">Criada em</label>
                 <input type="date" name="created_at" class="w-full px-4 py-2 rounded-xl text-sm">
             </div>
-            <button type="submit" class="mt-2 py-3 rounded-xl bg-gradient-to-r from-pink-500 to-red-600 text-white font-bold text-sm hover:opacity-90 transition-opacity">Cadastrar Chave</button>
+            <button type="submit" class="mt-2 py-3 rounded-xl bg-marca text-white font-bold text-sm hover:opacity-90 transition-opacity">Cadastrar Chave</button>
         </form>
     </div>
 
@@ -70,7 +70,7 @@
         <h3 class="text-lg font-bold mb-4">Chaves Cadastradas</h3>
         <div class="flex flex-col gap-3">
             {% for ch in chaves %}
-            <div class="flex justify-between items-center border-b border-[#23232d] pb-3 gap-4">
+            <div class="flex justify-between items-center border-b border-borda pb-3 gap-4">
                 <div class="min-w-0">
                     <p class="font-bold text-white text-sm break-all">{{ ch.key }} <span class="text-xs text-gray-400 font-normal">({{ ch.key_type }})</span></p>
                     <p class="text-xs text-gray-500">
@@ -79,14 +79,14 @@
                         {% if ch.account_number %} • Conta {{ ch.account_number }}{% endif %}
                     </p>
                     <p class="text-xs text-gray-500">
-                        {% if ch.created_at %}Criada em {{ ch.created_at }} • {% endif %}
+                        {% if ch.created_at %}Criada em {{ ch.created_at | data_br }} • {% endif %}
                         <span class="{% if ch.status == 'Ativa' %}text-emerald-400{% else %}text-amber-400{% endif %}">{{ ch.status }}</span>
                     </p>
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
-                    <button type="button" data-chave="{{ ch.key }}" onclick="copiarChave(this, this.dataset.chave)" class="text-xs font-semibold px-3 py-1 rounded bg-pink-600/20 text-pink-400 hover:bg-pink-600/30">Copiar</button>
+                    <button type="button" data-chave="{{ ch.key }}" onclick="copiarChave(this, this.dataset.chave)" aria-label="Copiar chave {{ ch.key }}" class="text-xs font-semibold px-3 py-1 rounded bg-pink-600/20 text-pink-400 hover:bg-pink-600/30">Copiar</button>
                     <form action="{{ url_for('pix.apagar', id=ch.id) }}" method="POST" onsubmit="return confirm('Tem certeza?');">
-                        <button type="submit" class="text-red-500 hover:text-red-400 text-xs font-semibold px-3 py-1 rounded bg-[#23232d]">Apagar</button>
+                        <button type="submit" aria-label="Apagar chave {{ ch.key }}" class="text-red-500 hover:text-red-400 text-xs font-semibold px-3 py-1 rounded bg-borda">Apagar</button>
                     </form>
                 </div>
             </div>

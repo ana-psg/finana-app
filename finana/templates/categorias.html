@@ -19,7 +19,7 @@
                     <option value="receita">Receita</option>
                 </select>
             </div>
-            <button type="submit" class="mt-2 py-3 rounded-xl bg-gradient-to-r from-pink-500 to-red-600 text-white font-bold text-sm hover:opacity-90 transition-opacity">Criar Categoria</button>
+            <button type="submit" class="mt-2 py-3 rounded-xl bg-marca text-white font-bold text-sm hover:opacity-90 transition-opacity">Criar Categoria</button>
         </form>
     </div>
 
@@ -27,12 +27,12 @@
         <h3 class="text-lg font-bold mb-4">Categorias Existentes</h3>
         <div class="flex flex-col gap-3">
             {% for cat in categorias_lista %}
-            <div class="flex justify-between items-center border-b border-[#23232d] pb-3">
+            <div class="flex justify-between items-center border-b border-borda pb-3">
                 <div>
                     <p class="font-bold text-white text-sm">{{ cat.name }} <span class="text-xs text-gray-400 font-normal">({{ cat.type }})</span></p>
                 </div>
                 <form action="{{ url_for('categorias.apagar', id=cat.id) }}" method="POST" onsubmit="return confirm('Tem certeza? Isso pode afetar lançamentos vinculados.');">
-                    <button type="submit" class="text-red-500 hover:text-red-400 text-xs font-semibold px-3 py-1 rounded bg-[#23232d]">Apagar</button>
+                    <button type="submit" aria-label="Apagar categoria {{ cat.name }}" class="text-red-500 hover:text-red-400 text-xs font-semibold px-3 py-1 rounded bg-borda">Apagar</button>
                 </form>
             </div>
             {% else %}

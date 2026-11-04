@@ -14,7 +14,7 @@
             <input type="password" name="confirmacao" inputmode="numeric" pattern="[0-9]*" required placeholder="Repita o PIN" class="w-full px-4 py-2 rounded-xl text-sm">
             {% if erro %}<p class="text-rose-400 text-sm">{{ erro }}</p>{% endif %}
             {% if ok %}<p class="text-emerald-400 text-sm">{{ ok }}</p>{% endif %}
-            <button type="submit" class="py-3 rounded-xl bg-gradient-to-r from-pink-500 to-red-600 text-white font-bold text-sm">Salvar PIN</button>
+            <button type="submit" class="py-3 rounded-xl bg-marca text-white font-bold text-sm">Salvar PIN</button>
         </form>
     </div>
 
@@ -23,7 +23,7 @@
         {% if endereco %}
         <p class="text-xs text-gray-400 mb-4">Com o celular no mesmo Wi‑Fi, aponte a câmera para o código ou digite o endereço no navegador:</p>
         <div class="flex flex-col items-center gap-4">
-            <div class="bg-white p-3 rounded-xl w-[204px]">{{ qr | safe }}</div>
+            <div class="bg-white p-3 rounded-xl w-52">{{ qr | safe }}</div>
             <p class="text-xl font-bold text-pink-400 select-all">{{ endereco }}</p>
         </div>
         {% else %}

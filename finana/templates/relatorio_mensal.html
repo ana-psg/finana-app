@@ -9,14 +9,14 @@
 <div class="card mb-6 lg:mb-8 flex flex-wrap justify-between items-center gap-3">
     <form method="GET" action="{{ url_for('relatorio_mensal.index') }}" class="flex flex-wrap items-center gap-2 sm:gap-4">
         <label class="text-sm font-bold text-white">Selecionar Mês de Análise:</label>
-        <select name="mes" class="px-4 py-2 rounded-xl text-sm bg-[#141419] border border-[#23232d] text-white" onchange="this.form.submit()">
+        <select name="mes" class="px-4 py-2 rounded-xl text-sm bg-painel border border-borda text-white" onchange="this.form.submit()">
             {% for valor, label in meses %}
             <option value="{{ valor }}" {% if mes_selecionado == valor %}selected{% endif %}>{{ label }}</option>
             {% endfor %}
         </select>
     </form>
     <a href="{{ url_for('relatorio_mensal.exportar_pdf', mes=mes_selecionado) }}"
-       class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-pink-500 to-red-600 text-white font-bold text-sm hover:opacity-90 transition-opacity">
+       class="px-5 py-2.5 rounded-xl bg-marca text-white font-bold text-sm hover:opacity-90 transition-opacity">
         Exportar relatório completo (PDF)
     </a>
 </div>
@@ -47,17 +47,17 @@
         <h3 class="text-lg font-bold mb-4">Lançamentos do Mês</h3>
         <div class="flex flex-col gap-3">
             {% for l in lancamentos_mes %}
-            <div class="flex justify-between items-center border-b border-[#23232d] pb-3">
+            <div class="flex justify-between items-center border-b border-borda pb-3">
                 <div>
                     <p class="text-gray-200 text-sm font-medium">{{ l.description }} <span class="text-xs text-gray-500">({{ l.conta }})</span></p>
-                    <p class="text-xs text-gray-500">{{ l.date }} • {{ l.categoria }}</p>
+                    <p class="text-xs text-gray-500">{{ l.date | data_br }} • {{ l.categoria }}</p>
                 </div>
                 <span class="font-bold text-sm {% if l.type == 'receita' %}text-emerald-400{% else %}text-red-500{% endif %}">
                     {% if l.type == 'receita' %}+{% else %}-{% endif %} {{ l.amount | brl }}
                 </span>
             </div>
             {% else %}
-            <p class="text-gray-500 text-sm">Nenhum lançamento registado neste mês.</p>
+            <p class="text-gray-500 text-sm">Nenhum lançamento registrado neste mês.</p>
             {% endfor %}
         </div>
     </div>
@@ -66,7 +66,7 @@
         <h3 class="text-lg font-bold mb-4">Parcelas e Faturas no Cartão</h3>
         <div class="flex flex-col gap-3">
             {% for f in faturas_mes %}
-            <div class="flex justify-between items-center border-b border-[#23232d] pb-3">
+            <div class="flex justify-between items-center border-b border-borda pb-3">
                 <div>
                     <p class="text-gray-200 text-sm font-medium">{{ f.description }} <span class="text-xs text-gray-500">({{ f.cartao }})</span></p>
                     <p class="text-xs text-gray-500">Parcela {{ f.installment_number }}/{{ f.total_installments }} • Status: <span class="{% if f.status == 'PAGO' %}text-emerald-400{% else %}text-amber-400{% endif %}">{{ f.status }}</span></p>
