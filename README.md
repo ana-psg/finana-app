@@ -2,6 +2,11 @@
 
 O AnaFins é um aplicativo de controle financeiro pessoal feito com foco em privacidade (local-first): sem nuvem, sem integração bancária e sem cadastro. Todos os dados ficam num banco SQLite no próprio computador. É feito em Python (Flask) e abre como aplicativo de desktop com a biblioteca pywebview. Também pode ser usado pelo celular, no Wi‑Fi de casa.
 
+<p>
+  <img src="docs/visao-geral.png" alt="Visão geral do AnaFins com saldos, obrigações e últimos lançamentos (dados de exemplo)" width="640">
+  <img src="docs/lancar-rapido-celular.png" alt="Tela Lançar rápido no celular (dados de exemplo)" width="180">
+</p>
+
 ## Funcionalidades
 
 * **Lançar rápido:** registra um gasto ou uma entrada em segundos, pensado para o celular.
