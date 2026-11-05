@@ -28,6 +28,10 @@ env/
 # Node (Tailwind)
 node_modules/
 
+# Executavel e instalador gerados pelo build.ps1
+build/
+dist/
+
 # Capturas de tela dos testes
 data/
 

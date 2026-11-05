@@ -15,7 +15,10 @@ Flask + pywebview + SQLite + Tailwind (CSS gerado e versionado). Usável no celu
 - Rotas só leem o formulário e mostram a tela; cálculo e escrita no banco ficam em `services/`.
 - Erros de dado: `utils.ErroNegocio` com mensagem em português (vira `flash(..., 'erro')`).
 - Banco: `schema.sql` é o formato atual. Para mudar: altere o schema E acrescente o passo em `db._migrar`
-  (bancos existentes). Nunca apagar o banco. `financas_local.db` fica na raiz do projeto (`db.RAIZ`).
+  (bancos existentes). Nunca apagar o banco. `financas_local.db` e `anafins.log` ficam em `db.PASTA_DADOS`:
+  no app instalado (.exe), `%APPDATA%\AnaFins` (o banco real da Ana está lá); rodando pelo código, na raiz do projeto.
+- Mantenha o .exe funcionando (`packaging/AnaFins.spec`): arquivo novo que o app lê de dentro de `finana/`
+  (fora de .py) entra em `datas`.
 - `conectar()` abre com BEGIN IMMEDIATE: cada pedido reserva a escrita (evita pagar duas vezes).
 - Dinheiro sempre arredondado em centavos (`ROUND(..., 2)` no SQL, `round(..., 2)` no Python).
 - Datas: `utils.agora()` (São Paulo, sem fuso). Mês = 'AAAA-MM'; mês da fatura = mês de VENCIMENTO.
@@ -35,4 +38,5 @@ Flask + pywebview + SQLite + Tailwind (CSS gerado e versionado). Usável no celu
 
 ## Como rodar
 - App: `python main.py`
+- Instalador: `.\build.ps1` (precisa do Inno Setup 6; saída em `dist/`)
 - Só no navegador: `python -m finana.app` -> http://127.0.0.1:8000
