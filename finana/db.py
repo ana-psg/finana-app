@@ -5,13 +5,27 @@
 
 import os
 import sqlite3
+import sys
 from contextlib import contextmanager
 
-PASTA = os.path.dirname(os.path.abspath(__file__))  # pacote finana/
-RAIZ = os.path.dirname(PASTA)  # pasta do projeto, onde fica o banco
-# Caminho absoluto: sempre o banco da pasta do projeto. ANAFINS_DB permite usar outro (testes).
-DB_FILE = os.environ.get('ANAFINS_DB') or os.path.join(RAIZ, 'financas_local.db')
+PASTA = os.path.dirname(os.path.abspath(__file__))  # pacote finana/ (no .exe, dentro do pacote)
+RAIZ = os.path.dirname(PASTA)  # pasta do projeto
+NOME_APP = 'AnaFins'
+INSTALADO = bool(getattr(sys, 'frozen', False))
+
+
+def pasta_dados(instalado, environ, raiz):
+    """Programa instalado: %APPDATA%\\AnaFins. Rodando pelo código: a pasta do projeto."""
+    if not instalado:
+        return raiz
+    return os.path.join(environ.get('APPDATA') or os.path.expanduser('~'), NOME_APP)
+
+
+PASTA_DADOS = pasta_dados(INSTALADO, os.environ, RAIZ)
+# Caminho absoluto. ANAFINS_DB permite usar outro banco (testes).
+DB_FILE = os.environ.get('ANAFINS_DB') or os.path.join(PASTA_DADOS, 'financas_local.db')
 SCHEMA_FILE = os.path.join(PASTA, 'schema.sql')
+os.makedirs(os.path.dirname(DB_FILE), exist_ok=True)
 
 CATEGORIAS_INICIAIS = [
     ('Alimentação', 'despesa'),

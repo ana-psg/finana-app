@@ -28,12 +28,19 @@ O AnaFins é um aplicativo de controle financeiro pessoal feito com foco em priv
 * Banco de dados: SQLite (`financas_local.db`)
 * Desktop: pywebview
 
-## Instalação e Execução
+## Baixar e instalar
 
-### Pré-requisitos
-Python 3.11 ou superior.
+1. Baixe **[AnaFins-Setup.exe](https://github.com/ana-psg/finana-app/releases/latest/download/AnaFins-Setup.exe)** (só esse arquivo, sempre a versão mais nova) e abra. Não precisa de administrador nem de Python. As versões anteriores ficam em [Releases](https://github.com/ana-psg/finana-app/releases).
+2. O Windows pode avisar "editor desconhecido" (o programa não tem assinatura digital paga): clique em **Mais informações > Executar assim mesmo**.
+3. Abra pelo menu Iniciar: **AnaFins**.
 
-### Passo a passo
+Cada pessoa começa com o app vazio. Os dados ficam em `%APPDATA%\AnaFins`, e instalar uma versão nova por cima ou desinstalar **não apaga** nada.
+
+> O WebView2 (motor da janela) já vem no Windows 10 e 11. Se a janela abrir em branco, instale o "Microsoft Edge WebView2 Runtime".
+
+## Rodar pelo código (para desenvolver)
+
+Precisa do Python 3.11 ou superior.
 
 1. Clone o repositório:
    ```bash
@@ -47,7 +54,9 @@ Python 3.11 ou superior.
 3. Abra o app com um duplo clique em `AnaFins.bat`, ou rode `python main.py`.
    Para abrir no navegador, rode `python -m finana.app` e acesse http://127.0.0.1:8000.
 
-O banco `financas_local.db` é criado sozinho na primeira execução e **nunca vai para o Git**.
+Rodando pelo código, o banco `financas_local.db` é criado sozinho na pasta do projeto (separado do app instalado) e **nunca vai para o Git**.
+
+Para gerar o instalador: `pip install -r requirements-dev.txt`, instale o [Inno Setup 6](https://jrsoftware.org/isinfo.php) e rode `.\build.ps1`. Ele roda os testes, cria o executável, confere que nenhum dado pessoal entrou e salva `dist\AnaFins-Setup-<versão>.exe`.
 
 ## Usar no Celular (Wi‑Fi de casa)
 
@@ -56,7 +65,7 @@ O banco `financas_local.db` é criado sozinho na primeira execução e **nunca v
 3. Entre com o PIN e use **Adicionar à tela inicial** para abrir como um app.
 
 O computador precisa estar ligado e com o AnaFins aberto. No próprio computador o PIN não é pedido.
-Na primeira vez, permita o Python em **Redes privadas** quando o Windows perguntar.
+Na primeira vez, permita o AnaFins (ou o Python, se rodar pelo código) em **Redes privadas** quando o Windows perguntar.
 
 ## Organização do Código
 
@@ -81,7 +90,8 @@ finana/             o app
   routes/             uma tela por arquivo (Flask Blueprints); acesso.py = PIN do celular
   templates/          HTML (Jinja2 + Tailwind); _macros.html = peças reaproveitadas
   static/             CSS gerado pelo Tailwind, logo e ícones
-tools/              setup_db.py (cria/recria o banco) e seed.py (dados de exemplo)
+tools/              setup_db.py (cria/recria o banco), seed.py (dados de exemplo), verificar_pacote.py
+packaging/          receita do executável (PyInstaller) e do instalador (Inno Setup); gerar com build.ps1
 tests/              testes automáticos (pytest) e capturas de tela (e2e_telas.py)
 backups/            cópias de segurança locais (fora do Git)
 ```
